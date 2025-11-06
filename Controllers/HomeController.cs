@@ -1,31 +1,52 @@
-using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VacunacionTPFinal.Models;
+using System.Diagnostics;
+using VacunacionTPFinal.Models; // Necesario para ErrorViewModel
 
-namespace VacunacionTPFinal.Controllers;
-
-public class HomeController : Controller
+namespace VacunacionTPFinal.Controllers
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    public class HomeController : Controller
     {
-        _logger = logger;
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+
+        
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // Página pública
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        // Página para usuarios que no tienen el rol necesario
+        [Authorize]
+        public IActionResult AccesoDenegado()
+        {
+            ViewData["Nombre"] = User.Identity.Name;
+            ViewData["Rol"] = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            return View();
+        }
+
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
     }
 
-    public IActionResult Index()
+  
+    public class ErrorViewModel
     {
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        public string? RequestId { get; set; }
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
 }

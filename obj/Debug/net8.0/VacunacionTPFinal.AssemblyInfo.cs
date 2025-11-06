@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VacunacionTPFinal")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+978ac936bd2fe09868db0a305e69c5071a50b794")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6c49da9886a092ed799c265ef39bb0943beaace1")]
 [assembly: System.Reflection.AssemblyProductAttribute("VacunacionTPFinal")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VacunacionTPFinal")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
