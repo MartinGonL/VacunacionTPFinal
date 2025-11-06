@@ -22,7 +22,7 @@ builder.Services.AddScoped<IRepositorioRegistroVacunacion, RepositorioRegistroVa
 // 2. CONFIGURACIÓN DE SEGURIDAD (LOGIN / ROLES)
 // -----------------------------------------------------------------
 // Agregamos servicios de autenticación y autorización
-builder.Services.AddAuthentication(CookieAuthentication.Defaults.AuthenticationScheme)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Usuarios/Login";      // Ruta a la acción de Login
