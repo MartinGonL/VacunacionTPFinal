@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 using System;
@@ -35,7 +36,7 @@ namespace VacunacionTPFinal.Models
             }
             return registro.ID_Registro;
         }
-
+        [Authorize(Roles = "Administrador")]
         public int Baja(int id)
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
@@ -49,7 +50,7 @@ namespace VacunacionTPFinal.Models
                 }
             }
         }
-
+        [Authorize(Roles = "Administrador")]
         public int Modificacion(RegistroVacunacion registro)
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
@@ -190,7 +191,6 @@ namespace VacunacionTPFinal.Models
             IList<RegistroVacunacion> lista = new List<RegistroVacunacion>();
             using (var connection = new MySqlConnection(connectionString))
             {
-                // Este JOIN es a través de Alumnos
                 string sql = $"{SQL_SELECT_BASE} WHERE a.ID_Escuela = @idEscuela";
                 using (var command = new MySqlCommand(sql, connection))
                 {

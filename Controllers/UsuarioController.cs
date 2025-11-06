@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
-using System.Collections.Generic; // Para List
-using Microsoft.AspNetCore.Hosting; // Para IWebHostEnvironment (subir archivos)
-using System.IO; // Para Path
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Hosting; 
+using System.IO;
 
 namespace VacunacionTPFinal.Controllers
 {
@@ -15,9 +15,8 @@ namespace VacunacionTPFinal.Controllers
     {
         private readonly IRepositorioUsuario repoUsuario;
         private readonly IRepositorioAgenteSanitario repoAgente;
-        private readonly IWebHostEnvironment environment; // Para subir archivos
+        private readonly IWebHostEnvironment environment; 
 
-        // Inyectamos los repositorios y el environment
         public UsuariosController(IRepositorioUsuario repoUsuario, IRepositorioAgenteSanitario repoAgente, IWebHostEnvironment environment)
         {
             this.repoUsuario = repoUsuario;
@@ -25,7 +24,6 @@ namespace VacunacionTPFinal.Controllers
             this.environment = environment;
         }
 
-        // Muestra la vista de Login
         [AllowAnonymous]
         public IActionResult Login()
         {
@@ -107,7 +105,6 @@ namespace VacunacionTPFinal.Controllers
         [Authorize]
         public IActionResult Perfil()
         {
-            // Obtenemos los datos del usuario actual para mostrar en la vista
             ViewData["Nombre"] = User.Identity.Name;
             ViewData["Email"] = User.FindFirst(ClaimTypes.Email)?.Value;
             ViewData["Avatar"] = User.FindFirst("AvatarURL")?.Value;
@@ -155,7 +152,7 @@ namespace VacunacionTPFinal.Controllers
                     // 6. Actualizar la cookie de sesión (Claim) con la nueva URL
                     // Para esto, debe desloguear y loguear "silenciosamente"
                     
-                    var user = (ClaimsPrincipal)User.Clone(); // Usar Clone() en lugar de CloneAsync()
+                    var user = (ClaimsPrincipal)User.Clone(); 
                     var identity = (ClaimsIdentity)user.Identity;
                     
                     var avatarClaim = identity.FindFirst("AvatarURL");

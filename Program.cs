@@ -1,16 +1,12 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using VacunacionTPFinal.Models; // ¡Importante! Aquí están todos nuestros reposDitorios e interfaces
+using VacunacionTPFinal.Models; 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
 // -----------------------------------------------------------------
-// 1. CONFIGURACIÓN DE INYECCIÓN DE DEPENDENCIAS (REPOSITORIOS)
-// -----------------------------------------------------------------
-// Le decimos a la app que use AddScoped (una instancia por solicitud HTTP)
-// Cuando un controlador pida "IRepositorioEscuela", le daremos "RepositorioEscuela".
+// CONFIGURACIÓN DE INYECCIÓN DE DEPENDENCIAS 
 builder.Services.AddScoped<IRepositorioEscuela, RepositorioEscuela>();
 builder.Services.AddScoped<IRepositorioAlumno, RepositorioAlumno>();
 builder.Services.AddScoped<IRepositorioAgenteSanitario, RepositorioAgenteSanitario>();
@@ -33,9 +29,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization(options =>
 {
-    // Aquí es donde defines tus roles (los nombres deben coincidir con lo que guardes en la DB)
+    
     options.AddPolicy("Administrador", policy => policy.RequireRole("Administrador"));
-    options.AddPolicy("Agente", policy => policy.RequireRole("Agente", "Administrador")); // Un admin también es agente
+    options.AddPolicy("Agente", policy => policy.RequireRole("Agente", "Administrador")); 
 });
 
 
@@ -45,7 +41,7 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    
     app.UseHsts();
 }
 
@@ -55,9 +51,6 @@ app.UseStaticFiles();
 app.UseRouting();
 
 // -----------------------------------------------------------------
-// 3. HABILITAR AUTENTICACIÓN Y AUTORIZACIÓN
-// -----------------------------------------------------------------
-// ¡El orden es MUY importante! Debe ir después de UseRouting.
 app.UseAuthentication();
 app.UseAuthorization();
 // -----------------------------------------------------------------

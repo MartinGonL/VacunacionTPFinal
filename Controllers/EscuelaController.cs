@@ -9,11 +9,11 @@ using VacunacionTPFinal.Models;
 
 namespace VacunacionTPFinal.Controllers
 {
-    [Authorize(Roles = "Administrador")] // Solo el Admin puede gestionar escuelas
+     
     public class EscuelaController : Controller
     {
         private readonly IRepositorioEscuela repoEscuela;
-        private readonly IWebHostEnvironment environment; // Para subir fotos
+        private readonly IWebHostEnvironment environment; 
 
         public EscuelaController(IRepositorioEscuela repoEscuela, IWebHostEnvironment environment)
         {
@@ -82,8 +82,7 @@ namespace VacunacionTPFinal.Controllers
                 return View(escuela);
             }
         }
-
-        // GET: Escuela/Edit/5
+        [Authorize(Roles = "Administrador")]
         public IActionResult Edit(int id)
         {
             var escuela = repoEscuela.ObtenerPorId(id);
@@ -95,6 +94,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // POST: Escuela/Edit/5
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Escuela escuela, IFormFile? foto)
@@ -110,8 +110,7 @@ namespace VacunacionTPFinal.Controllers
                 {
                     if (foto != null && foto.Length > 0)
                     {
-                        // (Aquí podrías borrar la foto anterior si existe)
-                        
+                                               
                         string wwwRootPath = environment.WebRootPath;
                         string uploadsDir = Path.Combine(wwwRootPath, "uploads", "escuelas");
                         if (!Directory.Exists(uploadsDir)) Directory.CreateDirectory(uploadsDir);
@@ -150,21 +149,20 @@ namespace VacunacionTPFinal.Controllers
             return View(escuela);
         }
 
-        // POST: Escuela/Delete/5
+        [Authorize(Roles = "Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
             try
             {
-                // (Aquí deberías borrar también la foto del servidor si existe)
                 repoEscuela.Baja(id);
                 TempData["MensajeExito"] = "Escuela eliminada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                // Manejar error de clave foránea (si la escuela tiene alumnos)
+                
                 if (ex.Message.Contains("FOREIGN KEY"))
                 {
                      TempData["MensajeError"] = "No se puede eliminar la escuela porque tiene alumnos asociados.";

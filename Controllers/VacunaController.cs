@@ -4,8 +4,7 @@ using System;
 using VacunacionTPFinal.Models;
 
 namespace VacunacionTPFinal.Controllers
-{
-    [Authorize(Roles = "Administrador")] // Solo el Admin puede gestionar vacunas
+{    
     public class VacunaController : Controller
     {
         private readonly IRepositorioVacuna repoVacuna;
@@ -50,6 +49,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // GET: Vacuna/Edit/5
+        [Authorize(Roles = "Administrador")]
         public IActionResult Edit(int id)
         {
             var vacuna = repoVacuna.ObtenerPorId(id);
@@ -61,6 +61,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // POST: Vacuna/Edit/5
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Vacuna vacuna)
@@ -87,6 +88,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // GET: Vacuna/Delete/5
+        [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int id)
         {
             var vacuna = repoVacuna.ObtenerPorId(id);
@@ -97,7 +99,9 @@ namespace VacunacionTPFinal.Controllers
             return View(vacuna);
         }
 
+        
         // POST: Vacuna/Delete/5
+        [Authorize(Roles = "Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)

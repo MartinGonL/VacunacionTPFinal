@@ -6,7 +6,6 @@ using VacunacionTPFinal.Models;
 
 namespace VacunacionTPFinal.Controllers
 {
-    [Authorize(Roles = "Agente, Administrador")] // Agentes y Admin pueden ver alumnos
     public class AlumnoController : Controller
     {
         private readonly IRepositorioAlumno repoAlumno;
@@ -57,13 +56,15 @@ namespace VacunacionTPFinal.Controllers
                 CargarEscuelasViewBag();
                 return View(alumno);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                 if (ex.Message.Contains("Duplicate entry"))
+                if (ex.Message.Contains("Duplicate entry"))
                 {
-                     ViewData["MensajeError"] = "El DNI del alumno ya está registrado.";
-                } else {
-                     ViewData["MensajeError"] = $"Error: {ex.Message}";
+                    ViewData["MensajeError"] = "El DNI del alumno ya está registrado.";
+                }
+                else
+                {
+                    ViewData["MensajeError"] = $"Error: {ex.Message}";
                 }
                 CargarEscuelasViewBag();
                 return View(alumno);
@@ -71,6 +72,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // GET: Alumno/Edit/5
+        [Authorize(Roles = "Administrador,Agente")]
         public IActionResult Edit(int id)
         {
             var alumno = repoAlumno.ObtenerPorId(id);
@@ -83,6 +85,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // POST: Alumno/Edit/5
+        [Authorize(Roles = "Administrador, Agente")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Alumno alumno)
@@ -111,6 +114,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // GET: Alumno/Delete/5
+        [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int id)
         {
             var alumno = repoAlumno.ObtenerPorId(id);
@@ -122,6 +126,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // POST: Alumno/Delete/5
+        [Authorize(Roles = "Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)

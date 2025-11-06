@@ -5,7 +5,7 @@ using System.Data;
 using VacunacionTPFinal.Models;
 
 namespace VacunacionTPFinal.Models
-{
+{   
     public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
     {
         public RepositorioUsuario(IConfiguration configuration) : base(configuration)
@@ -16,7 +16,6 @@ namespace VacunacionTPFinal.Models
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                // Agregamos Rol
                 string sql = @"INSERT INTO Usuarios (Email, PasswordHash, AvatarURL, Rol)
                              VALUES (@Email, @PasswordHash, @AvatarURL, @Rol);
                              SELECT LAST_INSERT_ID();";
@@ -25,7 +24,7 @@ namespace VacunacionTPFinal.Models
                     command.Parameters.AddWithValue("@Email", usuario.Email);
                     command.Parameters.AddWithValue("@PasswordHash", usuario.PasswordHash);
                     command.Parameters.AddWithValue("@AvatarURL", usuario.AvatarURL);
-                    command.Parameters.AddWithValue("@Rol", usuario.Rol); // <-- AÑADIDO
+                    command.Parameters.AddWithValue("@Rol", usuario.Rol); 
                     connection.Open();
                     usuario.ID_Usuario = Convert.ToInt32(command.ExecuteScalar());
                     connection.Close();
@@ -38,7 +37,6 @@ namespace VacunacionTPFinal.Models
         {
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                // Agregamos Rol
                 string sql = @"UPDATE Usuarios 
                              SET Email = @Email, PasswordHash = @PasswordHash, AvatarURL = @AvatarURL, Rol = @Rol
                              WHERE ID_Usuario = @id";
@@ -47,7 +45,7 @@ namespace VacunacionTPFinal.Models
                     command.Parameters.AddWithValue("@Email", usuario.Email);
                     command.Parameters.AddWithValue("@PasswordHash", usuario.PasswordHash);
                     command.Parameters.AddWithValue("@AvatarURL", usuario.AvatarURL);
-                    command.Parameters.AddWithValue("@Rol", usuario.Rol); // <-- AÑADIDO
+                    command.Parameters.AddWithValue("@Rol", usuario.Rol); 
                     command.Parameters.AddWithValue("@id", usuario.ID_Usuario);
                     connection.Open();
                     return command.ExecuteNonQuery();
@@ -60,7 +58,6 @@ namespace VacunacionTPFinal.Models
             Usuario? usuario = null;
             using (var connection = new MySqlConnection(connectionString))
             {
-                // Agregamos Rol
                 const string sql = @"SELECT ID_Usuario, Email, PasswordHash, AvatarURL, Rol
                                    FROM Usuarios
                                    WHERE ID_Usuario = @id";
@@ -77,7 +74,7 @@ namespace VacunacionTPFinal.Models
                                 ID_Usuario = reader.GetInt32("ID_Usuario"),
                                 Email = reader.GetString("Email"),
                                 PasswordHash = reader.GetString("PasswordHash"),
-                                Rol = reader.GetString("Rol"), // <-- AÑADIDO
+                                Rol = reader.GetString("Rol"), 
                                 AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? string.Empty : reader.GetString("AvatarURL")
                             };
                         }
@@ -92,7 +89,6 @@ namespace VacunacionTPFinal.Models
             Usuario? usuario = null;
             using (var connection = new MySqlConnection(connectionString))
             {
-                // Agregamos Rol
                 const string sql = @"SELECT ID_Usuario, Email, PasswordHash, AvatarURL, Rol
                                    FROM Usuarios
                                    WHERE Email = @email";
@@ -109,7 +105,7 @@ namespace VacunacionTPFinal.Models
                                 ID_Usuario = reader.GetInt32("ID_Usuario"),
                                 Email = reader.GetString("Email"),
                                 PasswordHash = reader.GetString("PasswordHash"),
-                                Rol = reader.GetString("Rol"), // <-- AÑADIDO
+                                Rol = reader.GetString("Rol"), 
                                 AvatarURL = reader.IsDBNull(reader.GetOrdinal("AvatarURL")) ? string.Empty : reader.GetString("AvatarURL")
                             };
                         }

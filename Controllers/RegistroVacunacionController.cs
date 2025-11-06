@@ -24,18 +24,15 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // GET: RegistroVacunacion
-        // Muestra la lista de TODAS las vacunaciones (para Admin)
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador, Agente")]
         public IActionResult Index()
-        {
-            // Aquí deberías implementar paginación (como pide la consigna)
-            // Por ahora, traemos todos
-            var lista = repoRegistro.ObtenerPaginado(1, 100); // Trae los 100 más recientes
+        {            
+            var lista = repoRegistro.ObtenerPaginado(1, 50); 
             return View(lista);
         }
 
         // Muestra el historial de un alumno específico
-        public IActionResult HistorialAlumno(int id) // id es ID_Alumno
+        public IActionResult HistorialAlumno(int id) 
         {
             var alumno = repoAlumno.ObtenerPorId(id);
             if (alumno == null) return NotFound();
@@ -48,14 +45,11 @@ namespace VacunacionTPFinal.Controllers
         // Método privado para cargar los dropdowns
         private void CargarViewBags()
         {
-            // Requisito: "Al seleccionar entidades... debe hacerse con búsqueda vía ajax"
-            // Por ahora (para la entrega base), cargamos todos
             ViewBag.Alumnos = new SelectList(repoAlumno.ObtenerTodos(), "ID_Alumno", "NombreCompleto");
             ViewBag.Vacunas = new SelectList(repoVacuna.ObtenerTodos(), "ID_Vacuna", "Nombre");
         }
 
         // GET: RegistroVacunacion/Create
-        // Esta es la acción de "Registrar Nueva Vacunación"
         public IActionResult Create()
         {
             CargarViewBags();
@@ -75,7 +69,6 @@ namespace VacunacionTPFinal.Controllers
                     var agenteClaim = User.FindFirst("AgenteId");
                     if (agenteClaim == null)
                     {
-                        // Es un Admin sin agente asociado, o algo salió mal
                         TempData["MensajeError"] = "Su usuario no es un Agente Sanitario válido.";
                         CargarViewBags();
                         return View(registro);
@@ -83,14 +76,11 @@ namespace VacunacionTPFinal.Controllers
                     
                     registro.ID_Agente = int.Parse(agenteClaim.Value);
 
-                    // 2. Settear la fecha de aplicación
                     registro.FechaAplicacion = DateTime.Now;
 
-                    // 3. Guardar el registro
                     repoRegistro.Alta(registro);
 
                     TempData["MensajeExito"] = "Vacunación registrada con éxito.";
-                    // Redirigir al historial del alumno vacunado
                     return RedirectToAction(nameof(HistorialAlumno), new { id = registro.ID_Alumno });
                 }
                 
@@ -105,8 +95,6 @@ namespace VacunacionTPFinal.Controllers
             }
         }
 
-        // (Aquí irían las acciones de Edit y Delete para los registros,
-        // pero por lo general solo un Admin debería poder hacerlas)
 
         // GET: RegistroVacunacion/Delete/5
         [Authorize(Roles = "Administrador")]

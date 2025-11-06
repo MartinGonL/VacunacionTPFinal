@@ -5,7 +5,7 @@ using VacunacionTPFinal.Models;
 
 namespace VacunacionTPFinal.Controllers
 {
-    [Authorize(Roles = "Administrador")] // Solo el Admin puede gestionar agentes
+    
     public class AgenteSanitarioController : Controller
     {
         private readonly IRepositorioAgenteSanitario repoAgente;
@@ -61,7 +61,7 @@ namespace VacunacionTPFinal.Controllers
                 }
                 return View(agente);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ViewData["MensajeError"] = $"Error: {ex.Message}";
                 // (Si falla, idealmente deberíamos borrar el usuario que se creó)
@@ -70,6 +70,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // GET: AgenteSanitario/Edit/5
+        [Authorize(Roles = "Administrador")]
         public IActionResult Edit(int id)
         {
             var agente = repoAgente.ObtenerPorId(id);
@@ -84,6 +85,7 @@ namespace VacunacionTPFinal.Controllers
         // POST: AgenteSanitario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public IActionResult Edit(int id, AgenteSanitario agente)
         {
             if (id != agente.ID_Agente)
@@ -111,9 +113,10 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // GET: AgenteSanitario/Delete/5
+        [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int id)
         {
-             var agente = repoAgente.ObtenerPorId(id);
+            var agente = repoAgente.ObtenerPorId(id);
             if (agente == null)
             {
                 return NotFound();
@@ -122,6 +125,7 @@ namespace VacunacionTPFinal.Controllers
         }
 
         // POST: AgenteSanitario/Delete/5
+        [Authorize(Roles = "Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)

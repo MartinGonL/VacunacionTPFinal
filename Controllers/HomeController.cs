@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using VacunacionTPFinal.Models; // Necesario para ErrorViewModel
+using VacunacionTPFinal.Models; 
 
 namespace VacunacionTPFinal.Controllers
 {
