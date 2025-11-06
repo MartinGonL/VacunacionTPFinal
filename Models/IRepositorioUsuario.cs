@@ -1,5 +1,5 @@
 using VacunacionTPFinal.Models;
-namespace VacunacionEscolar.Repositorios
+namespace VacunacionTPFinal.Models
 {
     public interface IRepositorioUsuario
     {

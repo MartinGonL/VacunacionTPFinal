@@ -1,7 +1,7 @@
 using VacunacionTPFinal.Models;
 using System.Collections.Generic;
 
-namespace VacunacionEscolar.Repositorios
+namespace VacunacionTPFinal.Models
 {
     public interface IRepositorioVacuna
     {

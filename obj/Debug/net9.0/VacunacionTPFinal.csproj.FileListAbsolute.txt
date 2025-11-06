@@ -1,0 +1,10 @@
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\VacunacionTPFinal.csproj.AssemblyReference.cache
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\rpswa.dswa.cache.json
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\VacunacionTPFinal.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\VacunacionTPFinal.AssemblyInfoInputs.cache
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\VacunacionTPFinal.AssemblyInfo.cs
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\VacunacionTPFinal.csproj.CoreCompileInputs.cache
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\VacunacionTPFinal.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\VacunacionTPFinal.RazorAssemblyInfo.cache
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\VacunacionTPFinal.RazorAssemblyInfo.cs
+C:\Users\Usuario\Documents\GitHub\VacunacionTPFinal\obj\Debug\net9.0\VacunacionTPFinal.sourcelink.json
