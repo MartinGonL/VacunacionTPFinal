@@ -79,6 +79,8 @@ namespace VacunacionTPFinal.Api
         {
             try
             {
+                ModelState.Remove(nameof(alumno.Escuela));
+
                 if (ModelState.IsValid)
                 {
                     var existente = _repoAlumno.ObtenerTodos().FirstOrDefault(a => a.DNI == alumno.DNI);
@@ -89,9 +91,11 @@ namespace VacunacionTPFinal.Api
 
                     var id = _repoAlumno.Alta(alumno);
                     var creado = _repoAlumno.ObtenerPorId(id);
-                    return CreatedAtAction(nameof(Get), new { id = id }, creado);
+                    return Ok(creado);
                 }
-                return BadRequest(ModelState);
+                
+                var errs = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest(errs);
             }
             catch (Exception ex)
             {
@@ -105,6 +109,8 @@ namespace VacunacionTPFinal.Api
         {
             try
             {
+                ModelState.Remove(nameof(alumno.Escuela));
+
                 if (ModelState.IsValid)
                 {
                     var existente = _repoAlumno.ObtenerTodos().FirstOrDefault(a => a.DNI == alumno.DNI && a.AlumnoID != id);
@@ -118,7 +124,9 @@ namespace VacunacionTPFinal.Api
                     var actualizado = _repoAlumno.ObtenerPorId(id);
                     return Ok(actualizado);
                 }
-                return BadRequest(ModelState);
+
+                var errs = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest(errs);
             }
             catch (Exception ex)
             {

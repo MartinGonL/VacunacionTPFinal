@@ -22,7 +22,7 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
                 command.Parameters.AddWithValue("@Apellido", alumno.Apellido);
                 command.Parameters.AddWithValue("@DNI", alumno.DNI);
                 command.Parameters.AddWithValue("@FechaNacimiento", alumno.FechaNacimiento);
-                command.Parameters.AddWithValue("@TelefonoTutor", alumno.TelefonoTutor);
+                command.Parameters.AddWithValue("@TelefonoTutor", string.IsNullOrWhiteSpace(alumno.TelefonoTutor) ? (object)DBNull.Value : alumno.TelefonoTutor);
                 command.Parameters.AddWithValue("@EscuelaID", alumno.EscuelaID);
                 id = Convert.ToInt32(command.ExecuteScalar());
             }
@@ -69,7 +69,7 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
                 command.Parameters.AddWithValue("@Apellido", alumno.Apellido);
                 command.Parameters.AddWithValue("@DNI", alumno.DNI);
                 command.Parameters.AddWithValue("@FechaNacimiento", alumno.FechaNacimiento);
-                command.Parameters.AddWithValue("@TelefonoTutor", alumno.TelefonoTutor);
+                command.Parameters.AddWithValue("@TelefonoTutor", string.IsNullOrWhiteSpace(alumno.TelefonoTutor) ? (object)DBNull.Value : alumno.TelefonoTutor);
                 command.Parameters.AddWithValue("@EscuelaID", alumno.EscuelaID);
                 command.Parameters.AddWithValue("@AlumnoID", alumno.AlumnoID);
                 res = command.ExecuteNonQuery();
