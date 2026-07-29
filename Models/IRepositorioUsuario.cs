@@ -1,14 +1,9 @@
-using VacunacionTPFinal.Models;
-namespace VacunacionTPFinal.Models
+public interface IRepositorioUsuario
 {
-    public interface IRepositorioUsuario
-    {
-        int Alta(Usuario usuario);
-        int Modificacion(Usuario usuario);
-        Usuario ObtenerPorId(int id);
-
-        Usuario ObtenerPorEmail(string email);
-
-        int ModificarAvatar(int idUsuario, string avatarUrl);
-    }
+    int Alta(Usuario usuario);
+    int Baja(int id);
+    int Modificar(Usuario usuario);
+    IEnumerable<Usuario> ObtenerTodos();
+    Usuario? ObtenerPorId(int id);
+    Usuario? ObtenerPorEmail(string email);
 }

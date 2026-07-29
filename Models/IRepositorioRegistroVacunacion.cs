@@ -1,22 +1,11 @@
-using VacunacionTPFinal.Models;
-using System.Collections.Generic;
-
-namespace VacunacionTPFinal.Models
+public interface IRepositorioRegistroVacunacion
 {
-    public interface IRepositorioRegistroVacunacion
-    {
-        int Alta(RegistroVacunacion registro);
-        int Baja(int id);
-        int Modificacion(RegistroVacunacion registro);
-        RegistroVacunacion ObtenerPorId(int id);
-
-        IList<RegistroVacunacion> ObtenerPorAlumno(int idAlumno);
-
-        IList<RegistroVacunacion> ObtenerPorAgente(int idAgente);
-        IList<RegistroVacunacion> ObtenerPorEscuela(int idEscuela);
-
-        IList<RegistroVacunacion> ObtenerPaginado(int pagina, int cantidad);
-
-        int ContarTotal();
-    }
+    int Alta(RegistroVacunacion registro);
+    int Baja(int id);
+    int Modificar(RegistroVacunacion registro);
+    IEnumerable<RegistroVacunacion> ObtenerTodos();
+    RegistroVacunacion? ObtenerPorId(int id);
+    IEnumerable<RegistroVacunacion> ObtenerPorAlumnoId(int alumnoId);
+    IEnumerable<RegistroVacunacion> ObtenerPaginados(int pagina, int cantidad);
+    int ObtenerTotal();
 }

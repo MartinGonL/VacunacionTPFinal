@@ -1,127 +1,82 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using VacunacionTPFinal.Models;
 
-namespace VacunacionTPFinal.Controllers
-{    
-    public class VacunaController : Controller
+[Authorize(Roles = "Administrador")]
+public class VacunaController : Controller
+{
+    private readonly IRepositorioVacuna _repoVacuna;
+
+    public VacunaController(IRepositorioVacuna repoVacuna)
     {
-        private readonly IRepositorioVacuna repoVacuna;
+        _repoVacuna = repoVacuna;
+    }
 
-        public VacunaController(IRepositorioVacuna repoVacuna)
+    // GET: /Vacuna
+    public IActionResult Index()
+    {
+        return View(_repoVacuna.ObtenerTodos());
+    }
+
+    // GET: /Vacuna/Create
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    // POST: /Vacuna/Create
+    [HttpPost]
+    public IActionResult Create(Vacuna vacuna)
+    {
+        try
         {
-            this.repoVacuna = repoVacuna;
+            _repoVacuna.Alta(vacuna);
+            return RedirectToAction(nameof(Index));
         }
-
-        // GET: Vacuna
-        public IActionResult Index()
+        catch (Exception ex)
         {
-            var lista = repoVacuna.ObtenerTodos();
-            return View(lista);
-        }
-
-        // GET: Vacuna/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Vacuna/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(Vacuna vacuna)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    repoVacuna.Alta(vacuna);
-                    TempData["MensajeExito"] = "Vacuna creada correctamente.";
-                    return RedirectToAction(nameof(Index));
-                }
-                return View(vacuna);
-            }
-            catch
-            {
-                return View(vacuna);
-            }
-        }
-
-        // GET: Vacuna/Edit/5
-        [Authorize(Roles = "Administrador")]
-        public IActionResult Edit(int id)
-        {
-            var vacuna = repoVacuna.ObtenerPorId(id);
-            if (vacuna == null)
-            {
-                return NotFound();
-            }
+            ViewBag.Error = ex.Message;
             return View(vacuna);
         }
+    }
 
-        // POST: Vacuna/Edit/5
-        [Authorize(Roles = "Administrador")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Vacuna vacuna)
+    // GET: /Vacuna/Edit/5
+    public IActionResult Edit(int id)
+    {
+        var vacuna = _repoVacuna.ObtenerPorId(id);
+        if (vacuna == null) return NotFound();
+        return View(vacuna);
+    }
+
+    // POST: /Vacuna/Edit/5
+    [HttpPost]
+    public IActionResult Edit(int id, Vacuna vacuna)
+    {
+        try
         {
-            if (id != vacuna.ID_Vacuna)
-            {
-                return NotFound();
-            }
-
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    repoVacuna.Modificacion(vacuna);
-                    TempData["MensajeExito"] = "Vacuna modificada correctamente.";
-                    return RedirectToAction(nameof(Index));
-                }
-                return View(vacuna);
-            }
-            catch
-            {
-                return View(vacuna);
-            }
+            vacuna.VacunaID = id;
+            _repoVacuna.Modificar(vacuna);
+            return RedirectToAction(nameof(Index));
         }
-
-        // GET: Vacuna/Delete/5
-        [Authorize(Roles = "Administrador")]
-        public IActionResult Delete(int id)
+        catch (Exception ex)
         {
-            var vacuna = repoVacuna.ObtenerPorId(id);
-            if (vacuna == null)
-            {
-                return NotFound();
-            }
+            ViewBag.Error = ex.Message;
             return View(vacuna);
         }
+    }
 
-        
-        // POST: Vacuna/Delete/5
-        [Authorize(Roles = "Administrador")]
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            try
-            {
-                repoVacuna.Baja(id);
-                TempData["MensajeExito"] = "Vacuna eliminada correctamente.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message.Contains("FOREIGN KEY"))
-                {
-                    TempData["MensajeError"] = "No se puede eliminar la vacuna, está siendo utilizada en registros.";
-                } else {
-                    TempData["MensajeError"] = "Error al eliminar la vacuna.";
-                }
-                return RedirectToAction(nameof(Index));
-            }
-        }
+    // GET: /Vacuna/Delete/5
+    public IActionResult Delete(int id)
+    {
+        var vacuna = _repoVacuna.ObtenerPorId(id);
+        if (vacuna == null) return NotFound();
+        return View(vacuna);
+    }
+
+    // POST: /Vacuna/Delete/5
+    [HttpPost, ActionName("Delete")]
+    public IActionResult DeleteConfirmed(int id)
+    {
+        _repoVacuna.Baja(id);
+        return RedirectToAction(nameof(Index));
     }
 }

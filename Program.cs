@@ -1,63 +1,93 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using VacunacionTPFinal.Models; 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration.GetConnectionString("MySql");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Connection string 'MySql' no encontrada. Verifica appsettings.json y el entorno.");
+}
+
 builder.Services.AddControllersWithViews();
 
-// -----------------------------------------------------------------
-// CONFIGURACIÓN DE INYECCIÓN DE DEPENDENCIAS 
-builder.Services.AddScoped<IRepositorioEscuela, RepositorioEscuela>();
-builder.Services.AddScoped<IRepositorioAlumno, RepositorioAlumno>();
-builder.Services.AddScoped<IRepositorioAgenteSanitario, RepositorioAgenteSanitario>();
-builder.Services.AddScoped<IRepositorioVacuna, RepositorioVacuna>();
-builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
-builder.Services.AddScoped<IRepositorioRegistroVacunacion, RepositorioRegistroVacunacion>();
+// Repositorios con fábrica para pasar connectionString
+builder.Services.AddTransient<IRepositorioUsuario>(sp => new RepositorioUsuario(connectionString));
+builder.Services.AddTransient<IRepositorioEscuela>(sp => new RepositorioEscuela(connectionString));
+builder.Services.AddTransient<IRepositorioFotoEscuela>(sp => new RepositorioFotoEscuela(connectionString));
+builder.Services.AddTransient<IRepositorioAlumno>(sp => new RepositorioAlumno(connectionString));
+builder.Services.AddTransient<IRepositorioVacuna>(sp => new RepositorioVacuna(connectionString));
+builder.Services.AddTransient<IRepositorioRegistroVacunacion>(sp => new RepositorioRegistroVacunacion(connectionString));
 
-// -----------------------------------------------------------------
-// 2. CONFIGURACIÓN DE SEGURIDAD (LOGIN / ROLES)
-// -----------------------------------------------------------------
-// Agregamos servicios de autenticación y autorización
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Usuarios/Login";      // Ruta a la acción de Login
-        options.LogoutPath = "/Usuarios/Logout";     // Ruta a la acción de Logout
-        options.AccessDeniedPath = "/Home/AccesoDenegado"; // Ruta si no tiene permisos
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Tiempo de la sesión
-    });
+// Auth service
+builder.Services.AddTransient<IAuthService, AuthService>();
 
-builder.Services.AddAuthorization(options =>
+builder.Services.AddAuthentication(options =>
 {
-    
-    options.AddPolicy("Administrador", policy => policy.RequireRole("Administrador"));
-    options.AddPolicy("Agente", policy => policy.RequireRole("Agente", "Administrador")); 
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.LoginPath        = "/Auth/Login";
+    options.LogoutPath       = "/Auth/Logout";
+    options.AccessDeniedPath = "/Home/AccesoDenegado"; 
+    options.Cookie.Name      = "Vacunacion.Auth"; 
+    options.Cookie.HttpOnly  = true;
+    options.SlidingExpiration = true;        
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    var jwtKey = builder.Configuration["Jwt:Key"] ?? "ClaveSuperSecretaDeVacunacionDeMinimo32CaracteresDeLargo!";
+    var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "VacunacionEscolarApi";
+    var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "VacunacionEscolarApiUsers";
+
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
 });
 
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Administrador", policy => policy.RequireRole("Administrador"));
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
-    
     app.UseHsts();
 }
+
+Console.WriteLine($"Aplicación arrancada. Entorno: {app.Environment.EnvironmentName}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
-// -----------------------------------------------------------------
 app.UseAuthentication();
 app.UseAuthorization();
-// -----------------------------------------------------------------
-
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
 
 app.Run();

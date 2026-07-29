@@ -1,158 +1,188 @@
-using Microsoft.Extensions.Configuration;
+
 using MySql.Data.MySqlClient;
-using System.Collections.Generic;
 using System.Data;
-// Corregido: Apuntamos al namespace 'Models' donde ahora residen las interfaces
-using VacunacionTPFinal.Models; 
 
-namespace VacunacionTPFinal.Models
+public class RepositorioEscuela : RepositorioBase, IRepositorioEscuela
 {
-    public class RepositorioEscuela : RepositorioBase, IRepositorioEscuela
-    {
-        public RepositorioEscuela(IConfiguration configuration) : base(configuration)
-        {
-        }
+    public RepositorioEscuela(string connectionString) : base(connectionString) { }
 
-        public int Alta(Escuela escuela)
+    public int Alta(Escuela escuela)
+    {
+        int id = 0;
+        using (var connection = new MySqlConnection(connectionString))
         {
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            connection.Open();
+            var sql = @"
+                INSERT INTO Escuelas (Nombre, Numero, Direccion)
+                VALUES (@Nombre, @Numero, @Direccion);
+                SELECT LAST_INSERT_ID();";
+            using (var command = new MySqlCommand(sql, connection))
             {
-                string sql = @"INSERT INTO Escuelas (Nombre, Direccion, Fotos, TelefonoInstitucional)
-                             VALUES (@Nombre, @Direccion, @Fotos, @Telefono);
-                             SELECT LAST_INSERT_ID();";
-                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                command.Parameters.AddWithValue("@Nombre", escuela.Nombre);
+                command.Parameters.AddWithValue("@Numero", escuela.Numero);
+                command.Parameters.AddWithValue("@Direccion", escuela.Direccion);
+                id = Convert.ToInt32(command.ExecuteScalar());
+            }
+            connection.Close();
+        }
+        return id;
+    }
+
+    public int Baja(int id)
+    {
+        int res = -1;
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            connection.Open();
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
                 {
-                    command.Parameters.AddWithValue("@Nombre", escuela.Nombre);
-                    command.Parameters.AddWithValue("@Direccion", escuela.Direccion);
-                    command.Parameters.AddWithValue("@Fotos", escuela.Fotos);
-                    command.Parameters.AddWithValue("@Telefono", escuela.TelefonoInstitucional);
-                    connection.Open();
-                    escuela.ID_Escuela = Convert.ToInt32(command.ExecuteScalar());
+                    var sqlFotos = "DELETE FROM FotosEscuela WHERE EscuelaID = @Id";
+                    using (var cmdFotos = new MySqlCommand(sqlFotos, connection, transaction))
+                    {
+                        cmdFotos.Parameters.AddWithValue("@Id", id);
+                        cmdFotos.ExecuteNonQuery();
+                    }
+
+                    var sqlAlumnos = "DELETE FROM Alumnos WHERE EscuelaID = @Id";
+                    using (var cmdAlumnos = new MySqlCommand(sqlAlumnos, connection, transaction))
+                    {
+                        cmdAlumnos.Parameters.AddWithValue("@Id", id);
+                        cmdAlumnos.ExecuteNonQuery();
+                    }
+
+                    var sqlEscuela = "DELETE FROM Escuelas WHERE EscuelaID = @Id";
+                    using (var cmdEscuela = new MySqlCommand(sqlEscuela, connection, transaction))
+                    {
+                        cmdEscuela.Parameters.AddWithValue("@Id", id);
+                        res = cmdEscuela.ExecuteNonQuery();
+                    }
+                    
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+                finally
+                {
                     connection.Close();
                 }
             }
-            return escuela.ID_Escuela;
         }
+        return res;
+    }
 
-        public int Baja(int id)
+    public int Modificar(Escuela escuela)
+    {
+        int res = -1;
+        using (var connection = new MySqlConnection(connectionString))
         {
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            connection.Open();
+            var sql = @"
+                UPDATE Escuelas SET 
+                Nombre = @Nombre, 
+                Numero = @Numero, 
+                Direccion = @Direccion
+                WHERE EscuelaID = @EscuelaID";
+            using (var command = new MySqlCommand(sql, connection))
             {
-                string sql = "DELETE FROM Escuelas WHERE ID_Escuela = @id";
-                using (MySqlCommand command = new MySqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@id", id);
-                    connection.Open();
-                    return command.ExecuteNonQuery();
-                }
+                command.Parameters.AddWithValue("@Nombre", escuela.Nombre);
+                command.Parameters.AddWithValue("@Numero", escuela.Numero);
+                command.Parameters.AddWithValue("@Direccion", escuela.Direccion);
+                command.Parameters.AddWithValue("@EscuelaID", escuela.EscuelaID);
+                res = command.ExecuteNonQuery();
             }
+            connection.Close();
         }
+        return res;
+    }
 
-        public int Modificacion(Escuela escuela)
+    public Escuela? ObtenerPorId(int id)
+    {
+        Escuela? res = null;
+        using (var connection = new MySqlConnection(connectionString))
         {
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            var sql = "SELECT EscuelaID, Nombre, Numero, Direccion FROM Escuelas WHERE EscuelaID = @id";
+            using (var command = new MySqlCommand(sql, connection))
             {
-                string sql = @"UPDATE Escuelas 
-                             SET Nombre = @Nombre, Direccion = @Direccion, Fotos = @Fotos, TelefonoInstitucional = @Telefono
-                             WHERE ID_Escuela = @id";
-                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                command.Parameters.AddWithValue("@id", id);
+                connection.Open();
+                using (var reader = command.ExecuteReader())
                 {
-                    command.Parameters.AddWithValue("@Nombre", escuela.Nombre);
-                    command.Parameters.AddWithValue("@Direccion", escuela.Direccion);
-                    command.Parameters.AddWithValue("@Fotos", escuela.Fotos);
-                    command.Parameters.AddWithValue("@Telefono", escuela.TelefonoInstitucional);
-                    command.Parameters.AddWithValue("@id", escuela.ID_Escuela);
-                    connection.Open();
-                    return command.ExecuteNonQuery();
-                }
-            }
-        }
-
-        public Escuela? ObtenerPorId(int id)
-        {
-            Escuela? escuela = null;
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                const string sql = @"SELECT ID_Escuela, Nombre, Direccion, Fotos, TelefonoInstitucional
-                                   FROM Escuelas
-                                   WHERE ID_Escuela = @id";
-                using (var command = new MySqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@id", id);
-                    connection.Open();
-                    using (var reader = command.ExecuteReader())
+                    if (reader.Read())
                     {
-                        if (reader.Read())
+                        res = new Escuela
                         {
-                            escuela = new Escuela
-                            {
-                                ID_Escuela = reader.GetInt32("ID_Escuela"),
-                                Nombre = reader.GetString("Nombre"),
-                                Direccion = reader.IsDBNull(reader.GetOrdinal("Direccion")) ? string.Empty : reader.GetString("Direccion"),
-                                Fotos = reader.IsDBNull(reader.GetOrdinal("Fotos")) ? string.Empty : reader.GetString("Fotos"),
-                                TelefonoInstitucional = reader.IsDBNull(reader.GetOrdinal("TelefonoInstitucional")) ? string.Empty : reader.GetString("TelefonoInstitucional")
-                            };
-                        }
+                            EscuelaID = reader.GetInt32("EscuelaID"),
+                            Nombre = reader.GetString("Nombre"),
+                            Numero = reader.IsDBNull(reader.GetOrdinal("Numero")) ? null : reader.GetInt32("Numero"),
+                            Direccion = reader.IsDBNull(reader.GetOrdinal("Direccion")) ? null : reader.GetString("Direccion")
+                        };
                     }
                 }
+                connection.Close();
             }
-            return escuela;
         }
+        return res;
+    }
 
-        public IList<Escuela> ObtenerTodos()
+    public IEnumerable<Escuela> ObtenerTodos()
+    {
+        var res = new List<Escuela>();
+        using (var connection = new MySqlConnection(connectionString))
         {
-            IList<Escuela> lista = new List<Escuela>();
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            var sql = "SELECT EscuelaID, Nombre, Numero, Direccion FROM Escuelas";
+            using (var command = new MySqlCommand(sql, connection))
             {
-                string sql = @"SELECT ID_Escuela, Nombre, Direccion, Fotos, TelefonoInstitucional
-                             FROM Escuelas";
-                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                connection.Open();
+                using (var reader = command.ExecuteReader())
                 {
-                    connection.Open();
-                    var reader = command.ExecuteReader();
                     while (reader.Read())
                     {
-                        lista.Add(new Escuela
+                        res.Add(new Escuela
                         {
-                            ID_Escuela = reader.GetInt32("ID_Escuela"),
+                            EscuelaID = reader.GetInt32("EscuelaID"),
                             Nombre = reader.GetString("Nombre"),
-                            Direccion = reader.IsDBNull(reader.GetOrdinal("Direccion")) ? string.Empty : reader.GetString("Direccion"),
-                            Fotos = reader.IsDBNull(reader.GetOrdinal("Fotos")) ? string.Empty : reader.GetString("Fotos"),
-                            TelefonoInstitucional = reader.IsDBNull(reader.GetOrdinal("TelefonoInstitucional")) ? string.Empty : reader.GetString("TelefonoInstitucional")
+                            Numero = reader.IsDBNull(reader.GetOrdinal("Numero")) ? null : reader.GetInt32("Numero"),
+                            Direccion = reader.IsDBNull(reader.GetOrdinal("Direccion")) ? null : reader.GetString("Direccion")
                         });
                     }
                 }
+                connection.Close();
             }
-            return lista;
         }
+        return res;
+    }
 
-        public IList<Escuela> BuscarPorNombre(string nombre)
+    public IEnumerable<Escuela> BuscarPorNombre(string nombre)
+    {
+        var res = new List<Escuela>();
+        using (var connection = new MySqlConnection(connectionString))
         {
-            IList<Escuela> lista = new List<Escuela>();
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            var sql = "SELECT EscuelaID, Nombre, Numero, Direccion FROM Escuelas WHERE Nombre LIKE @Nombre LIMIT 10";
+            using (var command = new MySqlCommand(sql, connection))
             {
-                string sql = @"SELECT ID_Escuela, Nombre, Direccion, Fotos, TelefonoInstitucional
-                             FROM Escuelas
-                             WHERE Nombre LIKE @nombre";
-                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                command.Parameters.AddWithValue("@Nombre", $"%{nombre}%");
+                connection.Open();
+                using (var reader = command.ExecuteReader())
                 {
-                    command.Parameters.AddWithValue("@nombre", $"%{nombre}%");
-                    connection.Open();
-                    var reader = command.ExecuteReader();
                     while (reader.Read())
                     {
-                        lista.Add(new Escuela
+                        res.Add(new Escuela
                         {
-                            ID_Escuela = reader.GetInt32("ID_Escuela"),
+                            EscuelaID = reader.GetInt32("EscuelaID"),
                             Nombre = reader.GetString("Nombre"),
-                            Direccion = reader.IsDBNull(reader.GetOrdinal("Direccion")) ? string.Empty : reader.GetString("Direccion"),
-                            Fotos = reader.IsDBNull(reader.GetOrdinal("Fotos")) ? string.Empty : reader.GetString("Fotos"),
-                            TelefonoInstitucional = reader.IsDBNull(reader.GetOrdinal("TelefonoInstitucional")) ? string.Empty : reader.GetString("TelefonoInstitucional")
+                            Numero = reader.IsDBNull(reader.GetOrdinal("Numero")) ? null : reader.GetInt32("Numero"),
+                            Direccion = reader.IsDBNull(reader.GetOrdinal("Direccion")) ? null : reader.GetString("Direccion")
                         });
                     }
                 }
+                connection.Close();
             }
-            return lista;
         }
+        return res;
     }
 }

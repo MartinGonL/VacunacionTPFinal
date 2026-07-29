@@ -1,176 +1,160 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http; // Para IFormFile
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using VacunacionTPFinal.Models;
 
-namespace VacunacionTPFinal.Controllers
+[Authorize]
+public class EscuelaController : Controller
 {
-     
-    public class EscuelaController : Controller
+    private readonly IRepositorioEscuela _repoEscuela;
+    private readonly IRepositorioFotoEscuela _repoFoto;
+    private readonly IWebHostEnvironment _webHostEnvironment;
+
+    public EscuelaController(IRepositorioEscuela repoEscuela, IRepositorioFotoEscuela repoFoto, IWebHostEnvironment webHostEnvironment)
     {
-        private readonly IRepositorioEscuela repoEscuela;
-        private readonly IWebHostEnvironment environment; 
+        _repoEscuela = repoEscuela;
+        _repoFoto = repoFoto;
+        _webHostEnvironment = webHostEnvironment;
+    }
 
-        public EscuelaController(IRepositorioEscuela repoEscuela, IWebHostEnvironment environment)
+    // GET: /Escuela
+    public IActionResult Index(string? buscar)
+    {
+        IEnumerable<Escuela> lista;
+        if (!string.IsNullOrEmpty(buscar))
         {
-            this.repoEscuela = repoEscuela;
-            this.environment = environment;
+            lista = _repoEscuela.BuscarPorNombre(buscar);
+        }
+        else
+        {
+            lista = _repoEscuela.ObtenerTodos();
         }
 
-        // GET: Escuela
-        public IActionResult Index()
+        foreach (var esc in lista)
         {
-            var lista = repoEscuela.ObtenerTodos();
-            return View(lista);
+            esc.Fotos = _repoFoto.ObtenerPorEscuelaId(esc.EscuelaID).ToList();
         }
 
-        // GET: Escuela/Details/5
-        public IActionResult Details(int id)
+        return View(lista);
+    }
+
+    // GET: /Escuela/Details/5
+    public IActionResult Details(int id)
+    {
+        var escuela = _repoEscuela.ObtenerPorId(id);
+        if (escuela == null) return NotFound();
+        
+        escuela.Fotos = _repoFoto.ObtenerPorEscuelaId(id).ToList();
+        return View(escuela);
+    }
+
+    // GET: /Escuela/Create
+    [Authorize(Roles = "Administrador, Agente")]
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    // POST: /Escuela/Create
+    [HttpPost]
+    [Authorize(Roles = "Administrador, Agente")]
+    public IActionResult Create(Escuela escuela)
+    {
+        try
         {
-            var escuela = repoEscuela.ObtenerPorId(id);
-            if (escuela == null)
-            {
-                return NotFound();
-            }
+            _repoEscuela.Alta(escuela);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            ViewBag.Error = ex.Message;
             return View(escuela);
         }
+    }
 
-        // GET: Escuela/Create
-        public IActionResult Create()
+    // GET: /Escuela/Edit/5
+    [Authorize(Roles = "Administrador,Agente")]
+    public IActionResult Edit(int id)
+    {
+        var escuela = _repoEscuela.ObtenerPorId(id);
+        if (escuela == null) return NotFound();
+        return View(escuela);
+    }
+
+    // POST: /Escuela/Edit/5
+    [HttpPost]
+    [Authorize(Roles = "Administrador,Agente")]
+    public IActionResult Edit(int id, Escuela escuela)
+    {
+        try
         {
-            return View();
+            escuela.EscuelaID = id;
+            _repoEscuela.Modificar(escuela);
+            return RedirectToAction(nameof(Index));
         }
-
-        // POST: Escuela/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Escuela escuela, IFormFile? foto)
+        catch (Exception ex)
         {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    if (foto != null && foto.Length > 0)
-                    {
-                        string wwwRootPath = environment.WebRootPath;
-                        string uploadsDir = Path.Combine(wwwRootPath, "uploads", "escuelas");
-                        if (!Directory.Exists(uploadsDir)) Directory.CreateDirectory(uploadsDir);
-                        
-                        string extension = Path.GetExtension(foto.FileName);
-                        string nombreArchivo = $"escuela_{Guid.NewGuid()}{extension}";
-                        string filePath = Path.Combine(uploadsDir, nombreArchivo);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await foto.CopyToAsync(fileStream);
-                        }
-                        escuela.Fotos = $"/uploads/escuelas/{nombreArchivo}"; // Guardamos la ruta
-                    }
-
-                    repoEscuela.Alta(escuela);
-                    TempData["MensajeExito"] = "Escuela creada correctamente.";
-                    return RedirectToAction(nameof(Index));
-                }
-                return View(escuela);
-            }
-            catch
-            {
-                return View(escuela);
-            }
-        }
-        [Authorize(Roles = "Administrador")]
-        public IActionResult Edit(int id)
-        {
-            var escuela = repoEscuela.ObtenerPorId(id);
-            if (escuela == null)
-            {
-                return NotFound();
-            }
+            ViewBag.Error = ex.Message;
             return View(escuela);
         }
+    }
 
-        // POST: Escuela/Edit/5
-        [Authorize(Roles = "Administrador")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Escuela escuela, IFormFile? foto)
+    // GET: /Escuela/Delete/5
+    [Authorize(Roles = "Administrador")]
+    public IActionResult Delete(int id)
+    {
+        var escuela = _repoEscuela.ObtenerPorId(id);
+        if (escuela == null) return NotFound();
+        return View(escuela);
+    }
+
+    // POST: /Escuela/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [Authorize(Roles = "Administrador")]
+    public IActionResult DeleteConfirmed(int id)
+    {
+        _repoEscuela.Baja(id);
+        return RedirectToAction(nameof(Index));
+    }
+
+    // POST: /Escuela/AgregarFoto
+    [HttpPost]
+    [Authorize(Roles = "Administrador, Agente")]
+    public async Task<IActionResult> AgregarFoto(FotoEscuela foto)
+    {
+        if (foto.FotoFile != null && foto.FotoFile.Length > 0)
         {
-            if (id != escuela.ID_Escuela)
-            {
-                return NotFound();
-            }
+            string wwwRootPath = _webHostEnvironment.WebRootPath ?? "wwwroot";
+            string uploadsFolder = Path.Combine(wwwRootPath, "uploads", "escuelas");
+            Directory.CreateDirectory(uploadsFolder);
 
-            try
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(foto.FotoFile.FileName);
+            string path = Path.Combine(uploadsFolder, fileName);
+            
+            using (var fileStream = new FileStream(path, FileMode.Create))
             {
-                if (ModelState.IsValid)
-                {
-                    if (foto != null && foto.Length > 0)
-                    {
-                                               
-                        string wwwRootPath = environment.WebRootPath;
-                        string uploadsDir = Path.Combine(wwwRootPath, "uploads", "escuelas");
-                        if (!Directory.Exists(uploadsDir)) Directory.CreateDirectory(uploadsDir);
-                        
-                        string extension = Path.GetExtension(foto.FileName);
-                        string nombreArchivo = $"escuela_{escuela.ID_Escuela}{extension}";
-                        string filePath = Path.Combine(uploadsDir, nombreArchivo);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await foto.CopyToAsync(fileStream);
-                        }
-                        escuela.Fotos = $"/uploads/escuelas/{nombreArchivo}";
-                    }
-                    
-                    repoEscuela.Modificacion(escuela);
-                    TempData["MensajeExito"] = "Escuela modificada correctamente.";
-                    return RedirectToAction(nameof(Index));
-                }
-                return View(escuela);
+                await foto.FotoFile.CopyToAsync(fileStream);
             }
-            catch
-            {
-                return View(escuela);
-            }
+            foto.FotoURL = "/uploads/escuelas/" + fileName;
+            _repoFoto.Alta(foto);
         }
+        return RedirectToAction(nameof(Details), new { id = foto.EscuelaID });
+    }
 
-        // GET: Escuela/Delete/5
-        public IActionResult Delete(int id)
+    // POST: /Escuela/EliminarFoto/5
+    [HttpPost]
+    [Authorize(Roles = "Administrador, Agente")]
+    public IActionResult EliminarFoto(int id)
+    {
+        var foto = _repoFoto.ObtenerPorId(id);
+        if (foto == null) return NotFound();
+
+        string wwwRootPath = _webHostEnvironment.WebRootPath ?? "wwwroot";
+        string path = Path.Combine(wwwRootPath, foto.FotoURL.TrimStart('/'));
+        if (System.IO.File.Exists(path))
         {
-            var escuela = repoEscuela.ObtenerPorId(id);
-            if (escuela == null)
-            {
-                return NotFound();
-            }
-            return View(escuela);
+            System.IO.File.Delete(path);
         }
-
-        [Authorize(Roles = "Administrador")]
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            try
-            {
-                repoEscuela.Baja(id);
-                TempData["MensajeExito"] = "Escuela eliminada correctamente.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                
-                if (ex.Message.Contains("FOREIGN KEY"))
-                {
-                     TempData["MensajeError"] = "No se puede eliminar la escuela porque tiene alumnos asociados.";
-                } else {
-                     TempData["MensajeError"] = "Error al eliminar la escuela.";
-                }
-                return RedirectToAction(nameof(Index));
-            }
-        }
+        
+        _repoFoto.Baja(id);
+        return RedirectToAction(nameof(Details), new { id = foto.EscuelaID });
     }
 }

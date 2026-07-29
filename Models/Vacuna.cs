@@ -1,10 +1,9 @@
-public class Vacuna
-    {
-        public int ID_Vacuna { get; set; }
-        public string Nombre { get; set; }
-        public string Lote { get; set; }
-        public string Descripcion { get; set; }
+using System.ComponentModel.DataAnnotations;
 
-        // Propiedad de navegación (Muchos Registros)
-        public List<RegistroVacunacion> Registros { get; set; } = new List<RegistroVacunacion>();
-    }
+public class Vacuna
+{
+    [Key]
+    public int VacunaID { get; set; }
+    public string NombreVacuna { get; set; } = null!;
+    public string? Descripcion { get; set; }
+}

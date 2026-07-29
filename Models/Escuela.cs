@@ -1,11 +1,14 @@
-public class Escuela
-    {
-        public int ID_Escuela { get; set; }
-        public string Nombre { get; set; }
-        public string Direccion { get; set; }
-        public string Fotos { get; set; } // URL o ruta al archivo
-        public string TelefonoInstitucional { get; set; }
+using System.ComponentModel.DataAnnotations;
 
-        // Propiedad de navegación (Muchos Alumnos)
-        public List<Alumno> Alumnos { get; set; } = new List<Alumno>();
-    }
+public class Escuela
+{
+    [Key]
+    public int EscuelaID { get; set; }
+    public string Nombre { get; set; } = null!; // inicializado
+    public int? Numero { get; set; }
+    public string? Direccion { get; set; }
+
+    // Propiedades de navegación
+    public ICollection<FotoEscuela> Fotos { get; set; } = new List<FotoEscuela>();
+    public ICollection<Alumno> Alumnos { get; set; } = new List<Alumno>();
+}

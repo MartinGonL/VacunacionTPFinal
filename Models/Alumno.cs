@@ -1,19 +1,32 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 public class Alumno
-    {
-        public int ID_Alumno { get; set; }
-        public string Nombre { get; set; }
-        public string Apellido { get; set; }
-        public string Dni { get; set; }
-        public string TelefonoTutor { get; set; }
-        public DateTime FechaNacimiento { get; set; }
-        public string Grado { get; set; }
+{
+    [Key]
+    public int AlumnoID { get; set; }
 
-        // Clave foránea para la relación Muchos a 1
-        public int ID_Escuela { get; set; }
+    [Required(ErrorMessage = "El nombre es obligatorio.")]
+    public string Nombre { get; set; } = null!;
 
-        // Propiedad de navegación (Una Escuela)
-        public Escuela Escuela { get; set; }
+    [Required(ErrorMessage = "El apellido es obligatorio.")]
+    public string Apellido { get; set; } = null!;
 
-        // Propiedad de navegación (Muchos Registros)
-        public List<RegistroVacunacion> Registros { get; set; } = new List<RegistroVacunacion>();
-    }
+    [Required(ErrorMessage = "El DNI es obligatorio.")]
+    [RegularExpression(@"^\d{7,8}$", ErrorMessage = "El DNI debe contener 7 u 8 dígitos numéricos.")]
+    public string DNI { get; set; } = null!;
+
+    [Required(ErrorMessage = "La fecha de nacimiento es obligatoria.")]
+    public DateTime FechaNacimiento { get; set; }
+
+    [RegularExpression(@"^$|^\d{10,}$", ErrorMessage = "El teléfono debe contener al menos 10 dígitos.")]
+    public string? TelefonoTutor { get; set; }
+    
+    [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una escuela obligatoriamente.")]
+    public int EscuelaID { get; set; }
+
+    [ForeignKey(nameof(EscuelaID))]
+    public Escuela? Escuela { get; set; }
+    public bool Borrado { get; set; }
+    public DateTime? FechaBaja { get; set; }
+}

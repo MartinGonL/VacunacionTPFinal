@@ -1,22 +1,11 @@
-using Microsoft.Extensions.Configuration; 
-using System;
+using MySql.Data.MySqlClient;
 
-namespace VacunacionTPFinal.Models
+public class RepositorioBase
 {
-    public abstract class RepositorioBase
-    {
-        protected readonly IConfiguration configuration;
-        protected readonly string connectionString;
+    protected readonly string connectionString;
 
-        protected RepositorioBase(IConfiguration configuration)
-        {
-            this.configuration = configuration;
-            connectionString = configuration["ConnectionStrings:MySql"]!; 
-            
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new InvalidOperationException("La cadena de conexión 'ConnectionStrings:MySql' no está configurada.");
-            }
-        }
+    public RepositorioBase(string connectionString)
+    {
+        this.connectionString = connectionString;
     }
 }
