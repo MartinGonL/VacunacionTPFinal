@@ -217,22 +217,34 @@
 
                 const esAdmin = ref(@(User.IsInRole("Administrador") ? "true" : "false"));
 
+                let timeoutBusqueda = null;
                 const cargarAlumnos = async (pagina = 1) => {
                     cargando.value = true;
                     errorGeneral.value = '';
                     try {
-                        const response = await fetch(`/api/alumnos?pagina=${pagina}`);
+                        let url = `/api/alumnos?pagina=${pagina}`;
+                        if (filtroNombre.value && filtroNombre.value.trim()) {
+                            url += `&q=${encodeURIComponent(filtroNombre.value.trim())}`;
+                        }
+                        const response = await fetch(url);
                         if (!response.ok) throw new Error('No se pudieron obtener los datos de los alumnos.');
                         
                         const data = await response.json();
-                        alumnos.value = data.resultados || [];
-                        paginaActual.value = data.paginaActual || 1;
-                        totalPaginas.value = data.totalPaginas || 1;
+                        alumnos.value = data.resultados || data.Resultados || [];
+                        paginaActual.value = data.paginaActual || data.PaginaActual || 1;
+                        totalPaginas.value = data.totalPaginas || data.TotalPaginas || 1;
                     } catch (err) {
                         errorGeneral.value = err.message;
                     } finally {
                         cargando.value = false;
                     }
+                };
+
+                const filtrarAlumnos = () => {
+                    clearTimeout(timeoutBusqueda);
+                    timeoutBusqueda = setTimeout(() => {
+                        cargarAlumnos(1);
+                    }, 300);
                 };
 
                 const cargarEscuelas = async () => {
@@ -252,14 +264,7 @@
                     }
                 };
 
-                const alumnosFiltrados = computed(() => {
-                    if (!filtroNombre.value) return alumnos.value;
-                    const filtro = filtroNombre.value.toLowerCase().trim();
-                    return alumnos.value.filter(a => 
-                        a.nombre.toLowerCase().includes(filtro) || 
-                        a.apellido.toLowerCase().includes(filtro)
-                    );
-                });
+                const alumnosFiltrados = computed(() => alumnos.value);
 
                 const formatearFecha = (fechaString) => {
                     if (!fechaString) return '';
@@ -399,7 +404,8 @@
                         }
 
                         cerrarModal();
-                        cargarAlumnos(paginaActual.value);
+                        filtroNombre.value = '';
+                        cargarAlumnos(1);
                     } catch (err) {
                         errorFormulario.value = err.message;
                     }
@@ -442,6 +448,7 @@
                     errores,
                     esAdmin,
                     alumnosFiltrados,
+                    filtrarAlumnos,
                     cambiarPagina,
                     formatearFecha,
                     abrirModalCrear,

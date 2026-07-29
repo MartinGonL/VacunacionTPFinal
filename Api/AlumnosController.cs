@@ -30,9 +30,13 @@ namespace VacunacionTPFinal.Api
                         .Where(a => a.Nombre.ToLower().Contains(termino) ||
                                     a.Apellido.ToLower().Contains(termino) ||
                                     a.DNI.Contains(termino))
-                        .Take(10)
                         .ToList();
-                    return Ok(resultados);
+                    return Ok(new
+                    {
+                        PaginaActual = 1,
+                        TotalPaginas = 1,
+                        Resultados = resultados
+                    });
                 }
 
                 int cantidadPorPagina = 10;

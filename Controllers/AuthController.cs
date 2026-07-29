@@ -65,51 +65,71 @@ public class AuthController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(Usuario model, string password)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (string.IsNullOrWhiteSpace(model.Rol)) model.Rol = "Agente";
 
-        var exists = _repositorioUsuario.ObtenerPorEmail(model.Email);
-        if (exists != null)
-        {
-            ModelState.AddModelError(nameof(model.Email), "Ya existe un usuario con ese email.");
-            return View(model);
-        }
+        ModelState.Remove(nameof(model.PasswordHash));
+        ModelState.Remove(nameof(model.Rol));
 
         if (string.IsNullOrWhiteSpace(password))
         {
             ModelState.AddModelError("password", "La contraseña es obligatoria.");
-            return View(model);
         }
 
-        // Guardar avatar si viene
-        if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+        if (model.AvatarFile == null || model.AvatarFile.Length == 0)
         {
-            var uploads = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "avatars");
-            Directory.CreateDirectory(uploads);
-            var fileName = $"{System.Guid.NewGuid()}{Path.GetExtension(model.AvatarFile.FileName)}";
-            var filePath = Path.Combine(uploads, fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            ModelState.AddModelError(nameof(model.AvatarFile), "La foto de perfil (avatar) es obligatoria.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.Email))
+        {
+            var exists = _repositorioUsuario.ObtenerPorEmail(model.Email);
+            if (exists != null)
             {
-                await model.AvatarFile.CopyToAsync(stream);
+                ModelState.AddModelError("", "Ya existe un usuario registrado con este correo electrónico.");
             }
-            model.AvatarURL = $"/uploads/avatars/{fileName}";
         }
 
-        // Hash y guardar
-        model.PasswordHash = _authService.HashPassword(password);
-        if (string.IsNullOrWhiteSpace(model.Rol)) model.Rol = "Agente";
+        if (!ModelState.IsValid) return View(model);
 
-        var newId = _repositorioUsuario.Alta(model);
-        if (newId <= 0)
+        try
         {
-            ModelState.AddModelError("", "No se pudo crear el usuario.");
+            // Guardar avatar si viene
+            if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+            {
+                var uploads = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "avatars");
+                Directory.CreateDirectory(uploads);
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.AvatarFile.FileName)}";
+                var filePath = Path.Combine(uploads, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.AvatarFile.CopyToAsync(stream);
+                }
+                model.AvatarURL = $"/uploads/avatars/{fileName}";
+            }
+
+            // Hash y guardar
+            model.PasswordHash = _authService.HashPassword(password);
+
+            var newId = _repositorioUsuario.Alta(model);
+            if (newId <= 0)
+            {
+                ModelState.AddModelError("", "No se pudo registrar el usuario. Verifique los datos.");
+                return View(model);
+            }
+
+            return RedirectToAction("Login", "Auth");
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("DNI", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Duplicate", StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError("", "Ya existe un usuario registrado con ese DNI o datos duplicados.");
+            }
+            else
+            {
+                ModelState.AddModelError("", "Error al registrar usuario: " + ex.Message);
+            }
             return View(model);
         }
-
-        // Opcional: logueo automático (descomentar si quieres auto-login)
-        // var saved = _repositorioUsuario.ObtenerPorId(newId);
-        // var claims = _authService.CreateClaimsPrincipal(saved);
-        // await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claims);
-
-        return RedirectToAction("Login", "Auth");
     }
 }

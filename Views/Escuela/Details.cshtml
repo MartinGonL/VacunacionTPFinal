@@ -111,6 +111,61 @@
             </div>
         </div>
     </div>
+
+    <!-- Lista de Alumnos Matriculados -->
+    @{
+        var listaAlumnos = ViewBag.Alumnos as IEnumerable<Alumno>;
+    }
+    <div class="row mt-4 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">👨‍🎓 Alumnos Matriculados en esta Escuela (@(listaAlumnos?.Count() ?? 0))</h5>
+                    <a asp-controller="Alumno" asp-action="Index" class="btn btn-sm btn-light fw-bold text-success">Ver Todos los Alumnos</a>
+                </div>
+                <div class="card-body p-0">
+                    @if (listaAlumnos != null && listaAlumnos.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Apellido, Nombre</th>
+                                        <th>DNI</th>
+                                        <th>Fecha de Nacimiento</th>
+                                        <th>Teléfono Tutor</th>
+                                        <th class="text-end pe-4">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var alu in listaAlumnos)
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-bold">@alu.Apellido, @alu.Nombre</td>
+                                            <td>@alu.DNI</td>
+                                            <td>@alu.FechaNacimiento.ToString("dd/MM/yyyy")</td>
+                                            <td>@(string.IsNullOrEmpty(alu.TelefonoTutor) ? "No asignado" : alu.TelefonoTutor)</td>
+                                            <td class="text-end pe-4">
+                                                <a asp-controller="RegistroVacunacion" asp-action="Create" asp-route-alumnoId="@alu.AlumnoID" class="btn btn-sm btn-outline-success">
+                                                    💉 Vacunar
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <p class="mb-0">No hay alumnos matriculados registrados en esta escuela actualmente.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

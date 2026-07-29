@@ -24,10 +24,10 @@ public class Usuario
     [EmailAddress(ErrorMessage = "El correo electrónico debe tener un formato válido (ejemplo@dominio.com).")]
     public string Email { get; set; } = null!;
     
-    [Required]
+    [Required(ErrorMessage = "La contraseña es obligatoria.")]
     public string PasswordHash { get; set; } = null!;
     
-    public string Rol { get; set; } = null!;
+    public string Rol { get; set; } = "Agente";
     public string? AvatarURL { get; set; }
 
     [RegularExpression(@"^$|^\d{10,}$", ErrorMessage = "El teléfono debe contener al menos 10 dígitos.")]
@@ -37,5 +37,7 @@ public class Usuario
     public bool Borrado { get; set; }
 
     [NotMapped]
+    [Display(Name = "Foto de Perfil")]
+    [Required(ErrorMessage = "La foto de perfil (avatar) es obligatoria.")]
     public IFormFile? AvatarFile { get; set; }
 }

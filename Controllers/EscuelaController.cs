@@ -6,12 +6,14 @@ public class EscuelaController : Controller
 {
     private readonly IRepositorioEscuela _repoEscuela;
     private readonly IRepositorioFotoEscuela _repoFoto;
+    private readonly IRepositorioAlumno _repoAlumno;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
-    public EscuelaController(IRepositorioEscuela repoEscuela, IRepositorioFotoEscuela repoFoto, IWebHostEnvironment webHostEnvironment)
+    public EscuelaController(IRepositorioEscuela repoEscuela, IRepositorioFotoEscuela repoFoto, IRepositorioAlumno repoAlumno, IWebHostEnvironment webHostEnvironment)
     {
         _repoEscuela = repoEscuela;
         _repoFoto = repoFoto;
+        _repoAlumno = repoAlumno;
         _webHostEnvironment = webHostEnvironment;
     }
 
@@ -43,6 +45,7 @@ public class EscuelaController : Controller
         if (escuela == null) return NotFound();
         
         escuela.Fotos = _repoFoto.ObtenerPorEscuelaId(id).ToList();
+        ViewBag.Alumnos = _repoAlumno.ObtenerPorEscuelaId(id).ToList();
         return View(escuela);
     }
 

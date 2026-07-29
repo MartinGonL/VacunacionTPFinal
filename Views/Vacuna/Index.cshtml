@@ -6,10 +6,13 @@
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark mb-0">Gestión de Vacunas</h2>
-        <a asp-action="Create" class="btn btn-primary shadow-sm">
-            ➕ Registrar Nueva Vacuna
-        </a>
+        <h2 class="fw-bold text-dark mb-0">Catálogo de Vacunas</h2>
+        @if (User.IsInRole("Administrador"))
+        {
+            <a asp-action="Create" class="btn btn-primary shadow-sm">
+                ➕ Registrar Nueva Vacuna
+            </a>
+        }
     </div>
 
     <div class="card shadow-sm border-0">
@@ -31,9 +34,15 @@
                                 <td>@item.Descripcion</td>
                                 <td class="text-end pe-4">
                                     <div class="btn-group" role="group">
-                                        <a asp-action="Details" asp-route-id="@item.VacunaID" class="btn btn-sm btn-outline-info">Ver</a>
-                                        <a asp-action="Edit" asp-route-id="@item.VacunaID" class="btn btn-sm btn-outline-primary">Editar</a>
-                                        <a asp-action="Delete" asp-route-id="@item.VacunaID" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                                        @if (User.IsInRole("Administrador"))
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@item.VacunaID" class="btn btn-sm btn-outline-primary">Editar</a>
+                                            <a asp-action="Delete" asp-route-id="@item.VacunaID" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Solo Lectura</span>
+                                        }
                                     </div>
                                 </td>
                             </tr>

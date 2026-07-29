@@ -65,6 +65,8 @@ public class UsuarioController : Controller
     {
         try
         {
+            ModelState.Remove(nameof(usuario.PasswordHash));
+
             if (!ModelState.IsValid)
             {
                 var errs = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-[Authorize(Roles = "Administrador")]
+[Authorize]
 public class VacunaController : Controller
 {
     private readonly IRepositorioVacuna _repoVacuna;
@@ -18,6 +18,7 @@ public class VacunaController : Controller
     }
 
     // GET: /Vacuna/Create
+    [Authorize(Roles = "Administrador")]
     public IActionResult Create()
     {
         return View();
@@ -25,6 +26,7 @@ public class VacunaController : Controller
 
     // POST: /Vacuna/Create
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public IActionResult Create(Vacuna vacuna)
     {
         try
@@ -40,6 +42,7 @@ public class VacunaController : Controller
     }
 
     // GET: /Vacuna/Edit/5
+    [Authorize(Roles = "Administrador")]
     public IActionResult Edit(int id)
     {
         var vacuna = _repoVacuna.ObtenerPorId(id);
@@ -49,6 +52,7 @@ public class VacunaController : Controller
 
     // POST: /Vacuna/Edit/5
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public IActionResult Edit(int id, Vacuna vacuna)
     {
         try
@@ -65,6 +69,7 @@ public class VacunaController : Controller
     }
 
     // GET: /Vacuna/Delete/5
+    [Authorize(Roles = "Administrador")]
     public IActionResult Delete(int id)
     {
         var vacuna = _repoVacuna.ObtenerPorId(id);
@@ -74,6 +79,7 @@ public class VacunaController : Controller
 
     // POST: /Vacuna/Delete/5
     [HttpPost, ActionName("Delete")]
+    [Authorize(Roles = "Administrador")]
     public IActionResult DeleteConfirmed(int id)
     {
         _repoVacuna.Baja(id);
