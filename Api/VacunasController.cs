@@ -50,7 +50,7 @@ namespace VacunacionTPFinal.Api
 
         // POST: api/vacunas
         [HttpPost]
-        [Authorize(Roles = "Administrador,Agente")]
+        [Authorize(Roles = "Administrador")]
         public IActionResult Post([FromBody] Vacuna vacuna)
         {
             try
@@ -71,7 +71,7 @@ namespace VacunacionTPFinal.Api
 
         // PUT: api/vacunas/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Administrador,Agente")]
+        [Authorize(Roles = "Administrador")]
         public IActionResult Put(int id, [FromBody] Vacuna vacuna)
         {
             try

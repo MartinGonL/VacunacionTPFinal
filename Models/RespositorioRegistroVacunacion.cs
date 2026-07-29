@@ -20,7 +20,7 @@ public class RepositorioRegistroVacunacion : RepositorioBase, IRepositorioRegist
             {
                 command.Parameters.AddWithValue("@FechaAplicacion", registro.FechaAplicacion);
                 command.Parameters.AddWithValue("@NumeroDosis", registro.NumeroDosis);
-                command.Parameters.AddWithValue("@Observaciones", registro.Observaciones);
+                command.Parameters.AddWithValue("@Observaciones", string.IsNullOrWhiteSpace(registro.Observaciones) ? (object)DBNull.Value : registro.Observaciones);
                 command.Parameters.AddWithValue("@AlumnoID", registro.AlumnoID);
                 command.Parameters.AddWithValue("@AgenteID", registro.AgenteID);
                 command.Parameters.AddWithValue("@VacunaID", registro.VacunaID);
@@ -69,7 +69,7 @@ public class RepositorioRegistroVacunacion : RepositorioBase, IRepositorioRegist
             {
                 command.Parameters.AddWithValue("@FechaAplicacion", registro.FechaAplicacion);
                 command.Parameters.AddWithValue("@NumeroDosis", registro.NumeroDosis);
-                command.Parameters.AddWithValue("@Observaciones", registro.Observaciones);
+                command.Parameters.AddWithValue("@Observaciones", string.IsNullOrWhiteSpace(registro.Observaciones) ? (object)DBNull.Value : registro.Observaciones);
                 command.Parameters.AddWithValue("@AlumnoID", registro.AlumnoID);
                 command.Parameters.AddWithValue("@AgenteID", registro.AgenteID);
                 command.Parameters.AddWithValue("@VacunaID", registro.VacunaID);

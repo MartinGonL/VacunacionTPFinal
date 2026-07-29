@@ -16,14 +16,14 @@ public class RegistroVacunacion
 
     // Propiedades de navegación
     [ForeignKey(nameof(AlumnoID))]
-    public Alumno Alumno { get; set; }
+    public Alumno? Alumno { get; set; }
 
     [ForeignKey(nameof(AgenteID))]
-    public Usuario Agente { get; set; }
+    public Usuario? Agente { get; set; }
 
     [ForeignKey(nameof(VacunaID))]
-    public Vacuna Vacuna { get; set; }
+    public Vacuna? Vacuna { get; set; }
 
     [ForeignKey(nameof(LugarVacunacion_EscuelaID))]
-    public Escuela Escuela { get; set; }
+    public Escuela? Escuela { get; set; }
 }

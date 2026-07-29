@@ -50,7 +50,7 @@ public class EscuelaController : Controller
     }
 
     // GET: /Escuela/Create
-    [Authorize(Roles = "Administrador, Agente")]
+    [Authorize(Roles = "Administrador,Agente")]
     public IActionResult Create()
     {
         return View();
@@ -58,7 +58,7 @@ public class EscuelaController : Controller
 
     // POST: /Escuela/Create
     [HttpPost]
-    [Authorize(Roles = "Administrador, Agente")]
+    [Authorize(Roles = "Administrador,Agente")]
     public IActionResult Create(Escuela escuela)
     {
         try
@@ -120,7 +120,7 @@ public class EscuelaController : Controller
 
     // POST: /Escuela/AgregarFoto
     [HttpPost]
-    [Authorize(Roles = "Administrador, Agente")]
+    [Authorize(Roles = "Administrador,Agente")]
     public async Task<IActionResult> AgregarFoto(FotoEscuela foto)
     {
         if (foto.FotoFile != null && foto.FotoFile.Length > 0)
@@ -144,7 +144,7 @@ public class EscuelaController : Controller
 
     // POST: /Escuela/EliminarFoto/5
     [HttpPost]
-    [Authorize(Roles = "Administrador, Agente")]
+    [Authorize(Roles = "Administrador,Agente")]
     public IActionResult EliminarFoto(int id)
     {
         var foto = _repoFoto.ObtenerPorId(id);

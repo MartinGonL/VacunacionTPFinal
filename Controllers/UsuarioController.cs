@@ -221,7 +221,7 @@ public class UsuarioController : Controller
     }
 
     // GET: /Usuario/Delete/5
-    [Authorize(Policy = "Administrador")] 
+    [Authorize(Roles = "Administrador")] 
     public IActionResult Delete(int id)
     {
         var usuario = _repositorioUsuario.ObtenerPorId(id);
@@ -231,7 +231,7 @@ public class UsuarioController : Controller
 
     // POST: /Usuario/Delete/5
     [HttpPost, ActionName("Delete")]
-    [Authorize(Policy = "Administrador")] 
+    [Authorize(Roles = "Administrador")] 
     public IActionResult DeleteConfirmed(int id)
     {
         _repositorioUsuario.Baja(id);
