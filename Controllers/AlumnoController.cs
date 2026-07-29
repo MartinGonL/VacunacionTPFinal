@@ -6,11 +6,13 @@ public class AlumnoController : Controller
 {
     private readonly IRepositorioAlumno _repoAlumno;
     private readonly IRepositorioEscuela _repoEscuela;
+    private readonly IRepositorioRegistroVacunacion _repoRegistro;
 
-    public AlumnoController(IRepositorioAlumno repoAlumno, IRepositorioEscuela repoEscuela)
+    public AlumnoController(IRepositorioAlumno repoAlumno, IRepositorioEscuela repoEscuela, IRepositorioRegistroVacunacion repoRegistro)
     {
         _repoAlumno = repoAlumno;
         _repoEscuela = repoEscuela;
+        _repoRegistro = repoRegistro;
     }
 
     // GET: /Alumno?pagina=1
@@ -31,9 +33,7 @@ public class AlumnoController : Controller
         var alumno = _repoAlumno.ObtenerPorId(id);
         if (alumno == null) return NotFound();
         
-        // Aquí podría cargar registros de vacunación
-        // var registros = _repoRegistro.ObtenerPorAlumnoId(id);
-        // ViewBag.Registros = registros;
+        ViewBag.Registros = _repoRegistro.ObtenerPorAlumnoId(id).ToList();
         
         return View(alumno);
     }

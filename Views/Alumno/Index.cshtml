@@ -72,6 +72,9 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group btn-group-sm">
+                                <a :href="'/Alumno/Details/' + alumno.alumnoID" class="btn btn-outline-info">
+                                    Ver Legajo
+                                </a>
                                 <a :href="'/RegistroVacunacion/Create?alumnoId=' + alumno.alumnoID" class="btn btn-outline-success">
                                     Vacunar
                                 </a>
@@ -166,7 +169,7 @@
 
                         <div class="text-end pt-3 border-top">
                             <button type="button" class="btn btn-sm btn-outline-secondary me-2" data-bs-dismiss="modal" @@click="cerrarModal">Cancelar</button>
-                            <button type="submit" class="btn btn-sm btn-primary">
+                            <button type="button" @@click="guardarAlumno" class="btn btn-sm btn-primary">
                                 {{ editando ? 'Guardar Cambios' : 'Registrar Alumno' }}
                             </button>
                         </div>
@@ -210,6 +213,7 @@
                     apellido: '',
                     dni: '',
                     fechaNacimiento: '',
+                    telefonoTutor: '',
                     escuelaID: ''
                 });
 
@@ -286,6 +290,7 @@
                         apellido: '',
                         dni: '',
                         fechaNacimiento: '',
+                        telefonoTutor: '',
                         escuelaID: ''
                     };
                     errorFormulario.value = '';
@@ -318,12 +323,12 @@
                     editando.value = true;
                     form.value = {
                         alumnoID: alumno.alumnoID,
-                        nombre: alumno.nombre,
-                        apellido: alumno.apellido,
-                        dni: alumno.dni,
+                        nombre: alumno.nombre || '',
+                        apellido: alumno.apellido || '',
+                        dni: alumno.dni || '',
                         fechaNacimiento: formatearFechaParaInput(alumno.fechaNacimiento),
                         telefonoTutor: alumno.telefonoTutor || '',
-                        escuelaID: alumno.escuelaID
+                        escuelaID: alumno.escuelaID || 0
                     };
                     if (!bootstrapModal) {
                         bootstrapModal = new bootstrap.Modal(document.getElementById('alumnoModal'));
@@ -341,30 +346,37 @@
                     let valido = true;
                     limpiarErrores();
 
-                    if (!form.value.nombre.trim()) {
+                    const nombre = (form.value.nombre || '').toString().trim();
+                    const apellido = (form.value.apellido || '').toString().trim();
+                    const dni = (form.value.dni || '').toString().trim();
+                    const fecha = form.value.fechaNacimiento;
+                    const telefono = (form.value.telefonoTutor || '').toString().trim();
+                    const escuelaId = Number(form.value.escuelaID || 0);
+
+                    if (!nombre) {
                         errores.value.nombre = 'El nombre es obligatorio.';
                         valido = false;
                     }
-                    if (!form.value.apellido.trim()) {
+                    if (!apellido) {
                         errores.value.apellido = 'El apellido es obligatorio.';
                         valido = false;
                     }
-                    if (!form.value.dni.trim()) {
+                    if (!dni) {
                         errores.value.dni = 'El DNI es obligatorio.';
                         valido = false;
-                    } else if (!/^\d{7,8}$/.test(form.value.dni.trim())) {
+                    } else if (!/^\d{7,8}$/.test(dni)) {
                         errores.value.dni = 'El DNI debe contener 7 u 8 dígitos numéricos.';
                         valido = false;
                     }
-                    if (!form.value.fechaNacimiento) {
+                    if (!fecha) {
                         errores.value.fechaNacimiento = 'La fecha de nacimiento es obligatoria.';
                         valido = false;
                     }
-                    if (form.value.telefonoTutor && form.value.telefonoTutor.trim().length > 0 && form.value.telefonoTutor.trim().length < 10) {
+                    if (telefono.length > 0 && telefono.length < 10) {
                         errores.value.telefonoTutor = 'El teléfono debe tener al menos 10 dígitos.';
                         valido = false;
                     }
-                    if (!form.value.escuelaID || form.value.escuelaID === 0) {
+                    if (!escuelaId || escuelaId === 0) {
                         errores.value.escuelaID = 'Debe seleccionar una escuela obligatoriamente.';
                         valido = false;
                     }
@@ -372,10 +384,22 @@
                     return valido;
                 };
 
-                const guardarAlumno = async () => {
+                const guardarAlumno = async (e) => {
+                    if (e && e.preventDefault) e.preventDefault();
+
                     if (!validarFormulario()) return;
 
-                    const url = editando.value ? `/api/alumnos/${form.value.alumnoID}` : '/api/alumnos';
+                    const payload = {
+                        alumnoID: form.value.alumnoID,
+                        nombre: (form.value.nombre || '').trim(),
+                        apellido: (form.value.apellido || '').trim(),
+                        dni: (form.value.dni || '').trim(),
+                        fechaNacimiento: form.value.fechaNacimiento,
+                        telefonoTutor: (form.value.telefonoTutor || '').trim() || null,
+                        escuelaID: Number(form.value.escuelaID)
+                    };
+
+                    const url = editando.value ? `/api/alumnos/${payload.alumnoID}` : '/api/alumnos';
                     const metodo = editando.value ? 'PUT' : 'POST';
 
                     try {
@@ -384,7 +408,7 @@
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify(form.value)
+                            body: JSON.stringify(payload)
                         });
 
                         if (!response.ok) {
@@ -392,7 +416,7 @@
                             let msg = resText;
                             try {
                                 const json = JSON.parse(resText);
-                                msg = json.error || json.message || json.title || resText;
+                                msg = json.error || json.message || json.title || (typeof json === 'string' ? json : resText);
                             } catch { }
 
                             if (msg.includes('DNI')) {
@@ -405,7 +429,7 @@
 
                         cerrarModal();
                         filtroNombre.value = '';
-                        cargarAlumnos(1);
+                        await cargarAlumnos(1);
                     } catch (err) {
                         errorFormulario.value = err.message;
                     }

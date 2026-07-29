@@ -1,55 +1,108 @@
 @model Alumno
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Legajo del Alumno";
+    var registros = ViewBag.Registros as List<RegistroVacunacion> ?? new List<RegistroVacunacion>();
 }
 
-<h1>Details</h1>
+<div class="container mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-primary fw-bold m-0">Legajo del Alumno</h2>
+            <p class="text-muted m-0">Información detallada del alumno y su historial de vacunación.</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                ← Volver al Listado
+            </a>
+            <a asp-controller="RegistroVacunacion" asp-action="Create" asp-route-alumnoId="@Model.AlumnoID" class="btn btn-success ms-2">
+                💉 Registrar Vacunación
+            </a>
+        </div>
+    </div>
 
-<div>
-    <h4>Alumno</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nombre)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nombre)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Apellido)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Apellido)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DNI)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DNI)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FechaNacimiento)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FechaNacimiento)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TelefonoTutor)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TelefonoTutor)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Escuela)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Escuela.Nombre)
-        </dd>
-    </dl>
-</div>
-<div class="mt-4">
-    <a asp-action="Edit" asp-route-id="@Model.AlumnoID" class="btn btn-primary">Editar Alumno</a> |
-    <a asp-controller="RegistroVacunacion" asp-action="Create" asp-route-alumnoId="@Model.AlumnoID" class="btn btn-success">Registrar Vacunación</a> |
-    <a asp-action="Index" class="btn btn-outline-secondary">Volver al Listado</a>
+    <div class="row">
+        <div class="col-md-5 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="card-title m-0">Datos Personales</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted fw-bold">Nombre Completo:</span>
+                            <span class="fw-bold">@Model.Apellido, @Model.Nombre</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted fw-bold">DNI:</span>
+                            <span>@Model.DNI</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted fw-bold">Fecha de Nacimiento:</span>
+                            <span>@Model.FechaNacimiento.ToString("dd/MM/yyyy")</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted fw-bold">Teléfono Tutor:</span>
+                            <span>@(string.IsNullOrWhiteSpace(Model.TelefonoTutor) ? "No asignado" : Model.TelefonoTutor)</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted fw-bold">Escuela:</span>
+                            <span class="badge bg-info text-dark">
+                                @(Model.Escuela != null ? Model.Escuela.Nombre : "Sin Escuela")
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title m-0 text-secondary">Historial de Vacunas Aplicadas</h5>
+                    <span class="badge bg-primary">@registros.Count vacunas</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (!registros.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <p class="m-0">No hay registros de vacunación para este alumno.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3">Vacuna</th>
+                                        <th>Dosis</th>
+                                        <th>Fecha</th>
+                                        <th>Lugar / Escuela</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var reg in registros)
+                                    {
+                                        <tr>
+                                            <td class="ps-3 fw-bold text-primary">
+                                                @(reg.Vacuna != null ? reg.Vacuna.NombreVacuna : "Vacuna N° " + reg.VacunaID)
+                                            </td>
+                                            <td>Dosis @reg.NumeroDosis</td>
+                                            <td>@reg.FechaAplicacion.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                <span class="small text-muted">
+                                                    @(reg.Escuela != null ? reg.Escuela.Nombre : "Establecimiento")
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -77,7 +77,16 @@ else
 Console.WriteLine($"Aplicación arrancada. Entorno: {app.Environment.EnvironmentName}");
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+var staticFileProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+staticFileProvider.Mappings[".avif"] = "image/avif";
+staticFileProvider.Mappings[".webp"] = "image/webp";
+staticFileProvider.Mappings[".heic"] = "image/heic";
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = staticFileProvider
+});
 
 app.UseRouting();
 

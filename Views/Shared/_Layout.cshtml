@@ -30,6 +30,12 @@
                                 <a class="nav-link text-dark" asp-controller="Alumno" asp-action="Index">Alumnos</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Escuela" asp-action="Index">Escuelas</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Vacuna" asp-action="Index">Vacunas</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="RegistroVacunacion" asp-action="Index">Registros</a>
                             </li>
                             @if (User.IsInRole("Administrador"))
@@ -39,8 +45,6 @@
                                         Administración
                                     </a>
                                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                        <li><a class="dropdown-item" asp-controller="Escuela" asp-action="Index">Escuelas</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Vacuna" asp-action="Index">Vacunas</a></li>
                                         <li><a class="dropdown-item" asp-controller="Usuario" asp-action="Index">Usuarios / Agentes</a></li>
                                         <li><a class="dropdown-item" asp-controller="FotoEscuela" asp-action="Index">Fotos de Escuelas</a></li>
                                     </ul>

@@ -52,32 +52,32 @@
                 </div>
             </div>
 
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold text-info">🏫 Gestión de Escuelas</h5>
+                        <p class="card-text text-muted flex-grow-1">
+                            Administra los establecimientos educativos asociados y sube imágenes de cada escuela.
+                        </p>
+                        <a asp-controller="Escuela" asp-action="Index" class="btn btn-outline-info w-100 mt-3">Ver Escuelas</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold text-warning">🛡️ Catálogo de Vacunas</h5>
+                        <p class="card-text text-muted flex-grow-1">
+                            Consulta las vacunas disponibles en el sistema y el Calendario Nacional de Vacunación.
+                        </p>
+                        <a asp-controller="Vacuna" asp-action="Index" class="btn btn-outline-warning w-100 mt-3">Ver Vacunas</a>
+                    </div>
+                </div>
+            </div>
+
             @if (User.IsInRole("Administrador"))
             {
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title fw-bold text-info">🏫 Gestión de Escuelas</h5>
-                            <p class="card-text text-muted flex-grow-1">
-                                Administra los establecimientos educativos asociados y sube imágenes de cada escuela.
-                            </p>
-                            <a asp-controller="Escuela" asp-action="Index" class="btn btn-outline-info w-100 mt-3">Ver Escuelas</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title fw-bold text-warning">🛡️ Gestión de Vacunas</h5>
-                            <p class="card-text text-muted flex-grow-1">
-                                Registra las vacunas disponibles en el sistema, detallando su descripción y tipo.
-                            </p>
-                            <a asp-controller="Vacuna" asp-action="Index" class="btn btn-outline-warning w-100 mt-3">Ver Vacunas</a>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0">
                         <div class="card-body d-flex flex-column">
