@@ -9,4 +9,6 @@ public interface IRepositorioAlumno
     int ObtenerTotal();
     Alumno? ObtenerPorId(int id);
     IEnumerable<Alumno> ObtenerPorEscuelaId(int escuelaId);
+    IEnumerable<Alumno> ObtenerPaginadosPorEscuelaId(int escuelaId, int pagina, int cantidad, string? buscar = null);
+    int ObtenerTotalPorEscuelaId(int escuelaId, string? buscar = null);
 }

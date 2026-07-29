@@ -38,14 +38,23 @@ public class EscuelaController : Controller
         return View(lista);
     }
 
-    // GET: /Escuela/Details/5
-    public IActionResult Details(int id)
+    // GET: /Escuela/Details/5?pagina=1&buscar=...
+    public IActionResult Details(int id, int pagina = 1, string? buscar = null)
     {
         var escuela = _repoEscuela.ObtenerPorId(id);
         if (escuela == null) return NotFound();
         
         escuela.Fotos = _repoFoto.ObtenerPorEscuelaId(id).ToList();
-        ViewBag.Alumnos = _repoAlumno.ObtenerPorEscuelaId(id).ToList();
+
+        int cantidadPorPagina = 10;
+        int totalAlumnos = _repoAlumno.ObtenerTotalPorEscuelaId(id, buscar);
+        
+        ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalAlumnos / cantidadPorPagina);
+        ViewBag.PaginaActual = pagina;
+        ViewBag.Buscar = buscar;
+        ViewBag.TotalAlumnos = totalAlumnos;
+        ViewBag.Alumnos = _repoAlumno.ObtenerPaginadosPorEscuelaId(id, pagina, cantidadPorPagina, buscar).ToList();
+
         return View(escuela);
     }
 

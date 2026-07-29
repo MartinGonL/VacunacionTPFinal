@@ -257,4 +257,67 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
         }
         return res;
     }
+
+    public IEnumerable<Alumno> ObtenerPaginadosPorEscuelaId(int escuelaId, int pagina, int cantidad, string? buscar = null)
+    {
+        var res = new List<Alumno>();
+        int offset = (pagina - 1) * cantidad;
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            var sql = @"SELECT AlumnoID, Nombre, Apellido, DNI, FechaNacimiento, TelefonoTutor, EscuelaID 
+                        FROM Alumnos 
+                        WHERE EscuelaID = @escuelaId 
+                          AND (@buscar IS NULL OR @buscar = '' OR Nombre LIKE @pattern OR Apellido LIKE @pattern OR DNI LIKE @pattern)
+                        ORDER BY Apellido, Nombre 
+                        LIMIT @cantidad OFFSET @offset";
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@escuelaId", escuelaId);
+                command.Parameters.AddWithValue("@buscar", (object?)buscar ?? DBNull.Value);
+                command.Parameters.AddWithValue("@pattern", $"%{buscar}%");
+                command.Parameters.AddWithValue("@cantidad", cantidad);
+                command.Parameters.AddWithValue("@offset", offset);
+                connection.Open();
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        res.Add(new Alumno
+                        {
+                            AlumnoID = reader.GetInt32("AlumnoID"),
+                            Nombre = reader.GetString("Nombre"),
+                            Apellido = reader.GetString("Apellido"),
+                            DNI = reader.GetString("DNI"),
+                            FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
+                            TelefonoTutor = reader.IsDBNull(reader.GetOrdinal("TelefonoTutor")) ? null : reader.GetString("TelefonoTutor"),
+                            EscuelaID = reader.GetInt32("EscuelaID")
+                        });
+                    }
+                }
+                connection.Close();
+            }
+        }
+        return res;
+    }
+
+    public int ObtenerTotalPorEscuelaId(int escuelaId, string? buscar = null)
+    {
+        int total = 0;
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            var sql = @"SELECT COUNT(*) FROM Alumnos 
+                        WHERE EscuelaID = @escuelaId 
+                          AND (@buscar IS NULL OR @buscar = '' OR Nombre LIKE @pattern OR Apellido LIKE @pattern OR DNI LIKE @pattern)";
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@escuelaId", escuelaId);
+                command.Parameters.AddWithValue("@buscar", (object?)buscar ?? DBNull.Value);
+                command.Parameters.AddWithValue("@pattern", $"%{buscar}%");
+                connection.Open();
+                total = Convert.ToInt32(command.ExecuteScalar());
+                connection.Close();
+            }
+        }
+        return total;
+    }
 }

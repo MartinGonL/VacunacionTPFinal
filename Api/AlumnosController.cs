@@ -17,12 +17,29 @@ namespace VacunacionTPFinal.Api
             _repoAlumno = repoAlumno;
         }
 
-        // GET: api/alumnos
+        // GET: api/alumnos?pagina=1&q=...&escuelaId=...
         [HttpGet]
-        public IActionResult Get([FromQuery] int pagina = 1, [FromQuery] string? q = null)
+        public IActionResult Get([FromQuery] int pagina = 1, [FromQuery] string? q = null, [FromQuery] int? escuelaId = null)
         {
             try
             {
+                int cantidadPorPagina = 10;
+
+                if (escuelaId.HasValue)
+                {
+                    var totalEscuela = _repoAlumno.ObtenerTotalPorEscuelaId(escuelaId.Value, q);
+                    var totalPaginasEscuela = (int)Math.Ceiling((double)totalEscuela / cantidadPorPagina);
+                    var listaEscuela = _repoAlumno.ObtenerPaginadosPorEscuelaId(escuelaId.Value, pagina, cantidadPorPagina, q);
+
+                    return Ok(new
+                    {
+                        PaginaActual = pagina,
+                        TotalPaginas = totalPaginasEscuela,
+                        TotalAlumnos = totalEscuela,
+                        Resultados = listaEscuela
+                    });
+                }
+
                 if (!string.IsNullOrWhiteSpace(q))
                 {
                     var termino = q.Trim().ToLower();
@@ -35,11 +52,11 @@ namespace VacunacionTPFinal.Api
                     {
                         PaginaActual = 1,
                         TotalPaginas = 1,
+                        TotalAlumnos = resultados.Count,
                         Resultados = resultados
                     });
                 }
 
-                int cantidadPorPagina = 10;
                 var total = _repoAlumno.ObtenerTotal();
                 var totalPaginas = (int)Math.Ceiling((double)total / cantidadPorPagina);
                 var lista = _repoAlumno.ObtenerPaginados(pagina, cantidadPorPagina);
@@ -48,6 +65,7 @@ namespace VacunacionTPFinal.Api
                 {
                     PaginaActual = pagina,
                     TotalPaginas = totalPaginas,
+                    TotalAlumnos = total,
                     Resultados = lista
                 });
             }
