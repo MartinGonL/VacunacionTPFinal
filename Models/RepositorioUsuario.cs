@@ -5,7 +5,30 @@ using System.Data;
 
 public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
 {
-    public RepositorioUsuario(string connectionString) : base(connectionString) { }
+    public RepositorioUsuario(string connectionString) : base(connectionString)
+    {
+        AsegurarColumnasBorrado();
+    }
+
+    private void AsegurarColumnasBorrado()
+    {
+        try
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                var sql = @"
+                    ALTER TABLE usuarios 
+                    ADD COLUMN IF NOT EXISTS Borrado TINYINT(1) NOT NULL DEFAULT 0,
+                    ADD COLUMN IF NOT EXISTS FechaBaja DATETIME NULL;";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+        catch { }
+    }
 
     public int Alta(Usuario usuario)
     {
@@ -14,8 +37,8 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         {
             connection.Open();
             var sql = @"
-                INSERT INTO usuarios (Nombre, Apellido, DNI, Matricula, Email, PasswordHash, Rol, AvatarURL, Telefono)
-                VALUES (@Nombre, @Apellido, @DNI, @Matricula, @Email, @PasswordHash, @Rol, @AvatarURL, @Telefono);
+                INSERT INTO usuarios (Nombre, Apellido, DNI, Matricula, Email, PasswordHash, Rol, AvatarURL, Telefono, Borrado)
+                VALUES (@Nombre, @Apellido, @DNI, @Matricula, @Email, @PasswordHash, @Rol, @AvatarURL, @Telefono, 0);
                 SELECT LAST_INSERT_ID();";
             using (var command = new MySqlCommand(sql, connection))
             {
@@ -36,14 +59,14 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         return id;
     }
 
-    // Baja física (DELETE). Si quieres soft delete, usa la ALTER TABLE anterior y cambia esto.
+    // Baja lógica (Soft Delete) para preservar la integridad referencial de vacunación
     public int Baja(int id)
     {
         int rows = 0;
         using (var connection = new MySqlConnection(connectionString))
         {
             connection.Open();
-            var sql = "DELETE FROM usuarios WHERE UsuarioID = @Id";
+            var sql = "UPDATE usuarios SET Borrado = 1, FechaBaja = NOW() WHERE UsuarioID = @Id";
             using (var command = new MySqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@Id", id);
@@ -118,7 +141,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         using (var connection = new MySqlConnection(connectionString))
         {
             connection.Open();
-            var sql = "SELECT * FROM usuarios WHERE UsuarioID = @Id LIMIT 1";
+            var sql = "SELECT * FROM usuarios WHERE UsuarioID = @Id AND (Borrado = 0 OR Borrado IS NULL) LIMIT 1";
             using (var command = new MySqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@Id", id);
@@ -141,7 +164,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         using (var connection = new MySqlConnection(connectionString))
         {
             connection.Open();
-            var sql = "SELECT * FROM usuarios WHERE Email = @Email LIMIT 1";
+            var sql = "SELECT * FROM usuarios WHERE Email = @Email AND (Borrado = 0 OR Borrado IS NULL) LIMIT 1";
             using (var command = new MySqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@Email", email);
@@ -164,7 +187,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         using (var connection = new MySqlConnection(connectionString))
         {
             connection.Open();
-            var sql = "SELECT * FROM usuarios";
+            var sql = "SELECT * FROM usuarios WHERE (Borrado = 0 OR Borrado IS NULL)";
             using (var command = new MySqlCommand(sql, connection))
             using (var reader = command.ExecuteReader())
             {
@@ -177,15 +200,7 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         }
         return lista;
     }
-    //recomendacion de copilot la dejo Qué hace, en pocas líneas:
 
-    //Lee los campos del reader (r["Campo"]) y los transforma/convierte al tipo correcto.
-    //Maneja valores NULL de la BD (DBNull) y los convierte a null o valores por defecto en C#.
-    //Devuelve un objeto Usuario listo para usar en el código.
-    //Por qué es útil:
-    //Centraliza el mapeo (evita duplicar lógica en ObtenerPorId, ObtenerPorEmail, ObtenerTodos).
-    //Reduce errores de conversión y NRE por valores NULL.
-    //Facilita mantener el código cuando cambian columnas: solo hay que actualizar este método.
     private Usuario MapearUsuario(IDataRecord r)
     {
         return new Usuario
@@ -200,6 +215,18 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
             Rol = r["Rol"] == DBNull.Value ? null : r["Rol"].ToString(),
             AvatarURL = r["AvatarURL"] == DBNull.Value ? null : r["AvatarURL"].ToString(),
             Telefono = r["Telefono"] == DBNull.Value ? null : r["Telefono"].ToString(),
+            FechaBaja = HasColumn(r, "FechaBaja") && r["FechaBaja"] != DBNull.Value ? Convert.ToDateTime(r["FechaBaja"]) : null,
+            Borrado = HasColumn(r, "Borrado") && r["Borrado"] != DBNull.Value && Convert.ToBoolean(r["Borrado"])
         };
+    }
+
+    private static bool HasColumn(IDataRecord dr, string columnName)
+    {
+        for (int i = 0; i < dr.FieldCount; i++)
+        {
+            if (dr.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
     }
 }
