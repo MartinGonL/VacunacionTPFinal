@@ -147,17 +147,24 @@
                         })
                         .then(data => {
                             resultsList.innerHTML = "";
-                            if (data.length === 0) {
+                            const alumnos = Array.isArray(data) ? data : (data.resultados || data.Resultados || []);
+                            if (alumnos.length === 0) {
                                 const li = document.createElement("li");
                                 li.className = "list-group-item text-muted small";
                                 li.textContent = "No se encontraron alumnos";
                                 resultsList.appendChild(li);
                             } else {
-                                data.forEach(alumno => {
+                                alumnos.forEach(alumno => {
+                                    const aluNombre = alumno.nombre || alumno.Nombre || "";
+                                    const aluApellido = alumno.apellido || alumno.Apellido || "";
+                                    const aluDni = alumno.dni || alumno.DNI || "";
+                                    const aluEscuela = alumno.escuela || alumno.Escuela;
+                                    const nombreEscuela = aluEscuela ? (aluEscuela.nombre || aluEscuela.Nombre || "Sin Escuela") : "Sin Escuela";
+
                                     const li = document.createElement("li");
                                     li.className = "list-group-item list-group-item-action py-2";
                                     li.style.cursor = "pointer";
-                                    li.innerHTML = `<strong>${alumno.apellido}, ${alumno.nombre}</strong> <span class="text-muted d-block small">DNI: ${alumno.dni} | Escuela: ${alumno.escuela ? alumno.escuela.nombre : 'Sin Escuela'}</span>`;
+                                    li.innerHTML = `<strong>${aluApellido}, ${aluNombre}</strong> <span class="text-muted d-block small">DNI: ${aluDni} | Escuela: ${nombreEscuela}</span>`;
                                     
                                     li.addEventListener("click", function () {
                                         seleccionarAlumno(alumno);
@@ -174,22 +181,30 @@
             });
 
             document.addEventListener("click", function (e) {
-                if (e.target !== inputSearch && e.target !== resultsList) {
+                if (e.target !== inputSearch && !resultsList.contains(e.target)) {
                     resultsList.classList.add("d-none");
                 }
             });
 
             function seleccionarAlumno(alumno) {
-                inputAlumnoId.value = alumno.alumnoID;
-                detalleNombre.textContent = `${alumno.apellido}, ${alumno.nombre}`;
-                detalleDni.textContent = alumno.dni;
-                detalleEscuela.textContent = alumno.escuela ? alumno.escuela.nombre : "Sin Escuela";
+                const aluId = alumno.alumnoID || alumno.alumnoId || alumno.AlumnoID;
+                const aluNombre = alumno.nombre || alumno.Nombre || "";
+                const aluApellido = alumno.apellido || alumno.Apellido || "";
+                const aluDni = alumno.dni || alumno.DNI || "";
+                const aluEscuela = alumno.escuela || alumno.Escuela;
+                const nombreEscuela = aluEscuela ? (aluEscuela.nombre || aluEscuela.Nombre || "Sin Escuela") : "Sin Escuela";
+                const escId = alumno.escuelaID || alumno.escuelaId || alumno.EscuelaID;
+
+                inputAlumnoId.value = aluId;
+                detalleNombre.textContent = `${aluApellido}, ${aluNombre}`;
+                detalleDni.textContent = aluDni;
+                detalleEscuela.textContent = nombreEscuela;
 
                 searchWrapper.classList.add("d-none");
                 alumnoDetalle.classList.remove("d-none");
 
-                if (alumno.escuelaID && selectEscuela) {
-                    selectEscuela.value = alumno.escuelaID;
+                if (escId && selectEscuela) {
+                    selectEscuela.value = escId;
                 }
 
                 inputSearch.value = "";
