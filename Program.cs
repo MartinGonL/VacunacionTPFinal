@@ -36,6 +36,7 @@ builder.Services.AddAuthentication(options =>
     options.AccessDeniedPath = "/Home/AccesoDenegado"; 
     options.Cookie.Name      = "Vacunacion.Auth"; 
     options.Cookie.HttpOnly  = true;
+    options.ExpireTimeSpan   = TimeSpan.FromMinutes(30);
     options.SlidingExpiration = true;        
 })
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>

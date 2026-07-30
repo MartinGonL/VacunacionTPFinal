@@ -5,30 +5,7 @@ using System.Data;
 
 public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
 {
-    public RepositorioUsuario(string connectionString) : base(connectionString)
-    {
-        AsegurarColumnasBorrado();
-    }
-
-    private void AsegurarColumnasBorrado()
-    {
-        try
-        {
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                connection.Open();
-                var sql = @"
-                    ALTER TABLE usuarios 
-                    ADD COLUMN IF NOT EXISTS Borrado TINYINT(1) NOT NULL DEFAULT 0,
-                    ADD COLUMN IF NOT EXISTS FechaBaja DATETIME NULL;";
-                using (var command = new MySqlCommand(sql, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
-        catch { }
-    }
+    public RepositorioUsuario(string connectionString) : base(connectionString) { }
 
     public int Alta(Usuario usuario)
     {

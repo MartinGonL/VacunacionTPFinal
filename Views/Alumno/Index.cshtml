@@ -41,6 +41,7 @@
                     <tr>
                         <th class="ps-4">Nombre Completo</th>
                         <th>DNI</th>
+                        <th>Grado / Turno</th>
                         <th>Fecha de Nacimiento</th>
                         <th>Teléfono Tutor</th>
                         <th>Escuela</th>
@@ -49,12 +50,12 @@
                 </thead>
                 <tbody>
                     <tr v-if="cargando">
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             Cargando datos de alumnos...
                         </td>
                     </tr>
                     <tr v-else-if="alumnosFiltrados.length === 0">
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             No se encontraron alumnos registrados.
                         </td>
                     </tr>
@@ -63,10 +64,16 @@
                             <span class="fw-bold">{{ alumno.apellido }}, {{ alumno.nombre }}</span>
                         </td>
                         <td>{{ alumno.dni }}</td>
+                        <td>
+                            <span class="badge bg-secondary me-1">{{ alumno.grado || '1er Grado' }}</span>
+                            <span :class="alumno.turno === 'Tarde' ? 'badge bg-warning text-dark' : 'badge bg-info text-dark'">
+                                {{ alumno.turno === 'Tarde' ? '🌙 Tarde' : '☀️ Mañana' }}
+                            </span>
+                        </td>
                         <td>{{ formatearFecha(alumno.fechaNacimiento) }}</td>
                         <td>{{ alumno.telefonoTutor || 'No asignado' }}</td>
                         <td>
-                            <span class="badge bg-info text-dark">
+                            <span class="badge bg-success">
                                 {{ alumno.escuela ? alumno.escuela.nombre : 'Sin Escuela' }}
                             </span>
                         </td>
@@ -150,6 +157,23 @@
                             </div>
                         </div>
 
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Turno * (Obligatorio)</label>
+                                <select v-model="form.turno" class="form-select form-select-sm" :class="{ 'is-invalid': errores.turno }">
+                                    <option value="" disabled>-- Seleccione un turno --</option>
+                                    <option value="Mañana">☀️ Turno Mañana</option>
+                                    <option value="Tarde">🌙 Turno Tarde</option>
+                                </select>
+                                <div class="invalid-feedback small">{{ errores.turno }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Grado / Curso (Calculado por Edad)</label>
+                                <input type="text" class="form-control form-control-sm bg-light fw-bold text-primary" :value="gradoCalculado" readonly>
+                                <small class="text-muted" style="font-size: 0.75rem;">Se asigna según año/mes de nacimiento.</small>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-secondary">Teléfono del Tutor (Opcional)</label>
                             <input type="text" v-model="form.telefonoTutor" class="form-control form-control-sm" :class="{ 'is-invalid': errores.telefonoTutor }" placeholder="Mínimo 10 dígitos (Ej: 2664123456)">
@@ -205,6 +229,8 @@
                     dni: '',
                     fechaNacimiento: '',
                     telefonoTutor: '',
+                    turno: '',
+                    grado: '',
                     escuelaID: 0
                 });
 
@@ -270,6 +296,19 @@
 
                 const alumnosFiltrados = computed(() => alumnos.value);
 
+                const gradoCalculado = computed(() => {
+                    if (!form.value.fechaNacimiento) return 'Seleccione Fecha';
+                    const fecha = new Date(form.value.fechaNacimiento + 'T00:00:00');
+                    if (isNaN(fecha.getTime())) return 'Seleccione Fecha';
+
+                    if (fecha >= new Date('2019-07-01')) return '1er Grado';
+                    if (fecha >= new Date('2018-07-01')) return '2do Grado';
+                    if (fecha >= new Date('2017-07-01')) return '3er Grado';
+                    if (fecha >= new Date('2016-07-01')) return '4to Grado';
+                    if (fecha >= new Date('2015-07-01')) return '5to Grado';
+                    return '6to Grado';
+                });
+
                 const formatearFecha = (fechaString) => {
                     if (!fechaString) return '';
                     const fecha = new Date(fechaString);
@@ -291,6 +330,7 @@
                         dni: '',
                         fechaNacimiento: '',
                         telefonoTutor: '',
+                        turno: '',
                         escuelaID: ''
                     };
                     errorFormulario.value = '';
@@ -304,6 +344,8 @@
                         dni: '',
                         fechaNacimiento: '',
                         telefonoTutor: '',
+                        turno: '',
+                        grado: '',
                         escuelaID: 0
                     };
                     limpiarErrores();
@@ -328,6 +370,8 @@
                         dni: alumno.dni || '',
                         fechaNacimiento: formatearFechaParaInput(alumno.fechaNacimiento),
                         telefonoTutor: alumno.telefonoTutor || '',
+                        turno: alumno.turno || 'Mañana',
+                        grado: alumno.grado || '1er Grado',
                         escuelaID: alumno.escuelaID || 0
                     };
                     if (!bootstrapModal) {
@@ -351,6 +395,7 @@
                     const dni = (form.value.dni || '').toString().trim();
                     const fecha = form.value.fechaNacimiento;
                     const telefono = (form.value.telefonoTutor || '').toString().trim();
+                    const turno = form.value.turno;
                     const escuelaId = Number(form.value.escuelaID || 0);
 
                     if (!nombre) {
@@ -370,6 +415,10 @@
                     }
                     if (!fecha) {
                         errores.value.fechaNacimiento = 'La fecha de nacimiento es obligatoria.';
+                        valido = false;
+                    }
+                    if (!turno || (turno !== 'Mañana' && turno !== 'Tarde')) {
+                        errores.value.turno = 'El turno es obligatorio (Mañana o Tarde).';
                         valido = false;
                     }
                     if (telefono.length > 0 && telefono.length < 10) {
@@ -396,6 +445,8 @@
                         dni: (form.value.dni || '').trim(),
                         fechaNacimiento: form.value.fechaNacimiento,
                         telefonoTutor: (form.value.telefonoTutor || '').trim() || null,
+                        turno: form.value.turno,
+                        grado: gradoCalculado.value,
                         escuelaID: Number(form.value.escuelaID)
                     };
 

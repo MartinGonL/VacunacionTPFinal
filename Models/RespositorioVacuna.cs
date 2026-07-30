@@ -14,8 +14,8 @@ public class RepositorioVacuna : RepositorioBase, IRepositorioVacuna
         {
             connection.Open();
             var sql = @"
-                INSERT INTO Vacunas (NombreVacuna, Descripcion)
-                VALUES (@NombreVacuna, @Descripcion);
+                INSERT INTO Vacunas (NombreVacuna, Descripcion, Borrado)
+                VALUES (@NombreVacuna, @Descripcion, 0);
                 SELECT LAST_INSERT_ID();";
             using (var command = new MySqlCommand(sql, connection))
             {
@@ -34,7 +34,7 @@ public class RepositorioVacuna : RepositorioBase, IRepositorioVacuna
         using (var connection = new MySqlConnection(connectionString))
         {
             connection.Open();
-            var sql = "DELETE FROM Vacunas WHERE VacunaID = @Id";
+            var sql = "UPDATE Vacunas SET Borrado = 1, FechaBaja = NOW() WHERE VacunaID = @Id";
             using (var command = new MySqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@Id", id);
@@ -74,7 +74,7 @@ public class RepositorioVacuna : RepositorioBase, IRepositorioVacuna
         using (var connection = new MySqlConnection(connectionString))
         {
             connection.Open();
-            var sql = "SELECT VacunaID, NombreVacuna, Descripcion FROM Vacunas WHERE VacunaID = @Id LIMIT 1";
+            var sql = "SELECT VacunaID, NombreVacuna, Descripcion, Borrado, FechaBaja FROM Vacunas WHERE VacunaID = @Id LIMIT 1";
             using (var command = new MySqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@Id", id);
@@ -97,7 +97,7 @@ public class RepositorioVacuna : RepositorioBase, IRepositorioVacuna
         using (var connection = new MySqlConnection(connectionString))
         {
             connection.Open();
-            var sql = "SELECT VacunaID, NombreVacuna, Descripcion FROM Vacunas ORDER BY NombreVacuna";
+            var sql = "SELECT VacunaID, NombreVacuna, Descripcion, Borrado, FechaBaja FROM Vacunas WHERE (Borrado = 0 OR Borrado IS NULL) ORDER BY NombreVacuna";
             using (var command = new MySqlCommand(sql, connection))
             using (var reader = command.ExecuteReader())
             {
@@ -117,7 +117,9 @@ public class RepositorioVacuna : RepositorioBase, IRepositorioVacuna
         {
             VacunaID = r["VacunaID"] == DBNull.Value ? 0 : Convert.ToInt32(r["VacunaID"]),
             NombreVacuna = r["NombreVacuna"] == DBNull.Value ? null : r["NombreVacuna"].ToString(),
-            Descripcion = r["Descripcion"] == DBNull.Value ? null : r["Descripcion"].ToString()
+            Descripcion = r["Descripcion"] == DBNull.Value ? null : r["Descripcion"].ToString(),
+            Borrado = r["Borrado"] != DBNull.Value && Convert.ToBoolean(r["Borrado"]),
+            FechaBaja = r["FechaBaja"] == DBNull.Value ? null : Convert.ToDateTime(r["FechaBaja"])
         };
     }
 }

@@ -37,7 +37,7 @@
                                         @if (User.IsInRole("Administrador"))
                                         {
                                             <a asp-action="Edit" asp-route-id="@item.VacunaID" class="btn btn-sm btn-outline-primary">Editar</a>
-                                            <a asp-action="Delete" asp-route-id="@item.VacunaID" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                                            <a asp-action="Delete" asp-route-id="@item.VacunaID" class="btn btn-sm btn-outline-warning">Dar de baja</a>
                                         }
                                         else
                                         {

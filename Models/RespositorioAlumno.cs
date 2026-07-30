@@ -13,8 +13,8 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
         {
             connection.Open();
             var sql = @"
-                INSERT INTO Alumnos (Nombre, Apellido, DNI, FechaNacimiento, TelefonoTutor, EscuelaID)
-                VALUES (@Nombre, @Apellido, @DNI, @FechaNacimiento, @TelefonoTutor, @EscuelaID);
+                INSERT INTO Alumnos (Nombre, Apellido, DNI, FechaNacimiento, TelefonoTutor, Turno, Grado, EscuelaID)
+                VALUES (@Nombre, @Apellido, @DNI, @FechaNacimiento, @TelefonoTutor, @Turno, @Grado, @EscuelaID);
                 SELECT LAST_INSERT_ID();";
             using (var command = new MySqlCommand(sql, connection))
             {
@@ -23,6 +23,8 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
                 command.Parameters.AddWithValue("@DNI", alumno.DNI);
                 command.Parameters.AddWithValue("@FechaNacimiento", alumno.FechaNacimiento);
                 command.Parameters.AddWithValue("@TelefonoTutor", string.IsNullOrWhiteSpace(alumno.TelefonoTutor) ? (object)DBNull.Value : alumno.TelefonoTutor);
+                command.Parameters.AddWithValue("@Turno", string.IsNullOrWhiteSpace(alumno.Turno) ? "Mañana" : alumno.Turno);
+                command.Parameters.AddWithValue("@Grado", string.IsNullOrWhiteSpace(alumno.Grado) ? "1er Grado" : alumno.Grado);
                 command.Parameters.AddWithValue("@EscuelaID", alumno.EscuelaID);
                 id = Convert.ToInt32(command.ExecuteScalar());
             }
@@ -61,6 +63,8 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
                 DNI = @DNI, 
                 FechaNacimiento = @FechaNacimiento, 
                 TelefonoTutor = @TelefonoTutor, 
+                Turno = @Turno,
+                Grado = @Grado,
                 EscuelaID = @EscuelaID
                 WHERE AlumnoID = @AlumnoID";
             using (var command = new MySqlCommand(sql, connection))
@@ -70,6 +74,8 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
                 command.Parameters.AddWithValue("@DNI", alumno.DNI);
                 command.Parameters.AddWithValue("@FechaNacimiento", alumno.FechaNacimiento);
                 command.Parameters.AddWithValue("@TelefonoTutor", string.IsNullOrWhiteSpace(alumno.TelefonoTutor) ? (object)DBNull.Value : alumno.TelefonoTutor);
+                command.Parameters.AddWithValue("@Turno", string.IsNullOrWhiteSpace(alumno.Turno) ? "Mañana" : alumno.Turno);
+                command.Parameters.AddWithValue("@Grado", string.IsNullOrWhiteSpace(alumno.Grado) ? "1er Grado" : alumno.Grado);
                 command.Parameters.AddWithValue("@EscuelaID", alumno.EscuelaID);
                 command.Parameters.AddWithValue("@AlumnoID", alumno.AlumnoID);
                 res = command.ExecuteNonQuery();
@@ -258,16 +264,18 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
         return res;
     }
 
-    public IEnumerable<Alumno> ObtenerPaginadosPorEscuelaId(int escuelaId, int pagina, int cantidad, string? buscar = null)
+    public IEnumerable<Alumno> ObtenerPaginadosPorEscuelaId(int escuelaId, int pagina, int cantidad, string? buscar = null, string? turno = null, string? grado = null)
     {
         var res = new List<Alumno>();
         int offset = (pagina - 1) * cantidad;
         using (var connection = new MySqlConnection(connectionString))
         {
-            var sql = @"SELECT AlumnoID, Nombre, Apellido, DNI, FechaNacimiento, TelefonoTutor, EscuelaID 
+            var sql = @"SELECT AlumnoID, Nombre, Apellido, DNI, FechaNacimiento, TelefonoTutor, Turno, Grado, EscuelaID 
                         FROM Alumnos 
                         WHERE EscuelaID = @escuelaId 
                           AND (@buscar IS NULL OR @buscar = '' OR Nombre LIKE @pattern OR Apellido LIKE @pattern OR DNI LIKE @pattern)
+                          AND (@turno IS NULL OR @turno = '' OR @turno = 'Todos' OR Turno = @turno)
+                          AND (@grado IS NULL OR @grado = '' OR @grado = 'Todos' OR Grado = @grado)
                         ORDER BY Apellido, Nombre 
                         LIMIT @cantidad OFFSET @offset";
             using (var command = new MySqlCommand(sql, connection))
@@ -275,6 +283,8 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
                 command.Parameters.AddWithValue("@escuelaId", escuelaId);
                 command.Parameters.AddWithValue("@buscar", (object?)buscar ?? DBNull.Value);
                 command.Parameters.AddWithValue("@pattern", $"%{buscar}%");
+                command.Parameters.AddWithValue("@turno", (object?)turno ?? DBNull.Value);
+                command.Parameters.AddWithValue("@grado", (object?)grado ?? DBNull.Value);
                 command.Parameters.AddWithValue("@cantidad", cantidad);
                 command.Parameters.AddWithValue("@offset", offset);
                 connection.Open();
@@ -290,6 +300,8 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
                             DNI = reader.GetString("DNI"),
                             FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
                             TelefonoTutor = reader.IsDBNull(reader.GetOrdinal("TelefonoTutor")) ? null : reader.GetString("TelefonoTutor"),
+                            Turno = reader.IsDBNull(reader.GetOrdinal("Turno")) ? "Mañana" : reader.GetString("Turno"),
+                            Grado = reader.IsDBNull(reader.GetOrdinal("Grado")) ? "1er Grado" : reader.GetString("Grado"),
                             EscuelaID = reader.GetInt32("EscuelaID")
                         });
                     }
@@ -300,19 +312,23 @@ public class RepositorioAlumno : RepositorioBase, IRepositorioAlumno
         return res;
     }
 
-    public int ObtenerTotalPorEscuelaId(int escuelaId, string? buscar = null)
+    public int ObtenerTotalPorEscuelaId(int escuelaId, string? buscar = null, string? turno = null, string? grado = null)
     {
         int total = 0;
         using (var connection = new MySqlConnection(connectionString))
         {
             var sql = @"SELECT COUNT(*) FROM Alumnos 
                         WHERE EscuelaID = @escuelaId 
-                          AND (@buscar IS NULL OR @buscar = '' OR Nombre LIKE @pattern OR Apellido LIKE @pattern OR DNI LIKE @pattern)";
+                          AND (@buscar IS NULL OR @buscar = '' OR Nombre LIKE @pattern OR Apellido LIKE @pattern OR DNI LIKE @pattern)
+                          AND (@turno IS NULL OR @turno = '' OR @turno = 'Todos' OR Turno = @turno)
+                          AND (@grado IS NULL OR @grado = '' OR @grado = 'Todos' OR Grado = @grado)";
             using (var command = new MySqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@escuelaId", escuelaId);
                 command.Parameters.AddWithValue("@buscar", (object?)buscar ?? DBNull.Value);
                 command.Parameters.AddWithValue("@pattern", $"%{buscar}%");
+                command.Parameters.AddWithValue("@turno", (object?)turno ?? DBNull.Value);
+                command.Parameters.AddWithValue("@grado", (object?)grado ?? DBNull.Value);
                 connection.Open();
                 total = Convert.ToInt32(command.ExecuteScalar());
                 connection.Close();

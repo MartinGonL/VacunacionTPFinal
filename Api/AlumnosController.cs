@@ -17,9 +17,9 @@ namespace VacunacionTPFinal.Api
             _repoAlumno = repoAlumno;
         }
 
-        // GET: api/alumnos?pagina=1&q=...&escuelaId=...
+        // GET: api/alumnos?pagina=1&q=...&escuelaId=...&turno=...&grado=...
         [HttpGet]
-        public IActionResult Get([FromQuery] int pagina = 1, [FromQuery] string? q = null, [FromQuery] int? escuelaId = null)
+        public IActionResult Get([FromQuery] int pagina = 1, [FromQuery] string? q = null, [FromQuery] int? escuelaId = null, [FromQuery] string? turno = null, [FromQuery] string? grado = null)
         {
             try
             {
@@ -27,9 +27,9 @@ namespace VacunacionTPFinal.Api
 
                 if (escuelaId.HasValue)
                 {
-                    var totalEscuela = _repoAlumno.ObtenerTotalPorEscuelaId(escuelaId.Value, q);
+                    var totalEscuela = _repoAlumno.ObtenerTotalPorEscuelaId(escuelaId.Value, q, turno, grado);
                     var totalPaginasEscuela = (int)Math.Ceiling((double)totalEscuela / cantidadPorPagina);
-                    var listaEscuela = _repoAlumno.ObtenerPaginadosPorEscuelaId(escuelaId.Value, pagina, cantidadPorPagina, q);
+                    var listaEscuela = _repoAlumno.ObtenerPaginadosPorEscuelaId(escuelaId.Value, pagina, cantidadPorPagina, q, turno, grado);
 
                     return Ok(new
                     {
@@ -99,6 +99,14 @@ namespace VacunacionTPFinal.Api
             {
                 ModelState.Remove(nameof(alumno.Escuela));
 
+                if (string.IsNullOrWhiteSpace(alumno.Turno) || (alumno.Turno != "Mañana" && alumno.Turno != "Tarde"))
+                {
+                    return BadRequest("Debe seleccionar un turno válido (Turno Mañana o Turno Tarde).");
+                }
+
+                // Cálculo automático del Grado en base a la Fecha de Nacimiento
+                alumno.Grado = Alumno.CalcularGradoSegunFecha(alumno.FechaNacimiento);
+
                 if (ModelState.IsValid)
                 {
                     var existente = _repoAlumno.ObtenerTodos().FirstOrDefault(a => a.DNI == alumno.DNI);
@@ -128,6 +136,14 @@ namespace VacunacionTPFinal.Api
             try
             {
                 ModelState.Remove(nameof(alumno.Escuela));
+
+                if (string.IsNullOrWhiteSpace(alumno.Turno) || (alumno.Turno != "Mañana" && alumno.Turno != "Tarde"))
+                {
+                    return BadRequest("Debe seleccionar un turno válido (Turno Mañana o Turno Tarde).");
+                }
+
+                // Cálculo automático del Grado en base a la Fecha de Nacimiento
+                alumno.Grado = Alumno.CalcularGradoSegunFecha(alumno.FechaNacimiento);
 
                 if (ModelState.IsValid)
                 {
